@@ -1,0 +1,284 @@
+<title>サイネージ 決定版レイアウト（クリーンホワイト）</title>
+<style>
+  :root{
+    --bg:#f4f5f7; --fg:#1b2430; --muted:#5b6878; --card:#ffffff; --line:#dde2e9; --accent:#2f6fb2;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#14171c; --fg:#e8ecf2; --muted:#98a4b5; --card:#1d2229; --line:#333b47; --accent:#6ba3d6; }
+  }
+  :root[data-theme="dark"]{ --bg:#14171c; --fg:#e8ecf2; --muted:#98a4b5; --card:#1d2229; --line:#333b47; --accent:#6ba3d6; }
+  :root[data-theme="light"]{ --bg:#f4f5f7; --fg:#1b2430; --muted:#5b6878; --card:#ffffff; --line:#dde2e9; --accent:#2f6fb2; }
+
+  body{ background:var(--bg); color:var(--fg);
+    font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP","Yu Gothic UI",Meiryo,sans-serif;
+    margin:0; padding:32px 24px 64px; }
+  .wrap{ max-width:1280px; margin:0 auto; }
+  h1{ font-size:1.5rem; margin:0 0 4px; text-wrap:balance; }
+  .sub{ color:var(--muted); margin:0 0 20px; font-size:.95rem; }
+  .stage{ width:100%; aspect-ratio:16/9; background:#fff; border-radius:10px; overflow:hidden;
+    border:1px solid var(--line); position:relative; }
+  .note{ background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px 20px; margin-top:16px; }
+  .note h2{ font-size:1.05rem; margin:0 0 8px; }
+  .note ul{ margin:0; padding-left:1.2em; line-height:1.7; }
+
+  /* ===== サイネージ本体（クリーンホワイト） ===== */
+  .screen{ width:1920px; height:1080px; transform-origin:top left; position:absolute; top:0; left:0;
+    display:flex; flex-direction:column;
+    --s-ground:#f6f8fb; --s-card:#ffffff; --s-line:#d8e1ec; --s-soft:#eef3f9;
+    --s-text:#1c2a3a; --s-muted:#64748b;
+    --fl:#f59e0b; --fl-ink:#3d2800; --fl-soft:#fef3dd;
+    --dl:#0e9f9e; --dl-ink:#ffffff; --dl-soft:#dcf5f4;
+    --info:#2f6fb2; --alert:#d64545; --fun:#c26bb5;
+    background:var(--s-ground); color:var(--s-text); }
+  .screen *{ box-sizing:border-box; }
+  .num{ font-variant-numeric:tabular-nums; }
+
+  .chip{ display:inline-block; padding:1px 12px; border-radius:999px; font-size:20px; font-weight:800; letter-spacing:.06em; flex:none; }
+  .chip.fl{ background:var(--fl); color:var(--fl-ink); }
+  .chip.dl{ background:var(--dl); color:var(--dl-ink); }
+  .panel{ background:var(--s-card); border:1px solid var(--s-line); border-radius:14px; padding:20px 26px; overflow:hidden;
+    box-shadow:0 1px 4px rgba(24,40,64,.06); }
+  .sec-title{ font-size:28px; font-weight:800; letter-spacing:.03em; margin:0 0 14px; display:flex; align-items:center; gap:12px; }
+  .sec-title::before{ content:""; width:10px; height:28px; border-radius:4px; background:var(--info); flex:none; }
+  .sec-title.warn::before{ background:var(--alert); }
+  .sec-title.fun::before{ background:var(--fun); }
+  .sec-title .range{ font-size:21px; color:var(--s-muted); font-weight:600; margin-left:auto; }
+  .row{ display:flex; align-items:baseline; gap:14px; font-size:25px; line-height:1.45; }
+  .row + .row{ margin-top:12px; }
+  .datechip{ flex:none; min-width:116px; text-align:center; background:var(--s-soft); border:1px solid var(--s-line);
+    border-radius:8px; padding:1px 8px; font-weight:700; font-size:21px; color:var(--s-muted); }
+  .deadline{ color:var(--alert); font-weight:800; white-space:nowrap; }
+  .muted{ color:var(--s-muted); }
+
+  /* ヘッダー */
+  .head{ flex:none; height:92px; display:flex; align-items:center; justify-content:space-between;
+    padding:0 36px; background:#ffffff; border-bottom:2px solid var(--s-line); }
+  .head .left{ display:flex; align-items:baseline; gap:18px; }
+  .head .clock{ font-size:48px; font-weight:800; line-height:1; }
+  .head .date{ font-size:28px; color:var(--s-muted); font-weight:600; }
+  .head .now{ display:flex; align-items:center; gap:12px; font-size:26px; font-weight:800; }
+  .head .count{ font-size:26px; font-weight:800; display:flex; align-items:baseline; gap:10px; }
+  .head .count .label{ color:var(--s-muted); font-weight:700; }
+  .head .count b{ color:var(--alert); font-size:44px; }
+
+  /* 本体: 左1/3固定 + 右2/3スライド */
+  .main{ flex:1; display:grid; grid-template-columns:1fr 2fr; gap:18px; padding:18px 36px; min-height:0; }
+
+  /* 左: FL/DL */
+  .fd-panel{ display:flex; flex-direction:column; min-height:0; }
+  .fd-wrap{ flex:1; display:grid; grid-template-columns:255px 1fr; gap:16px; min-height:0; }
+  .fd-col h3{ margin:0 0 10px; font-size:21px; font-weight:800; display:flex; align-items:center; gap:8px; color:var(--s-muted); letter-spacing:.08em; }
+  .timeline{ display:flex; flex-direction:column; gap:8px; }
+  .tl-item{ display:flex; flex-direction:column; gap:1px; padding:8px 13px; border-radius:9px; border:1px solid var(--s-line); background:var(--s-soft); }
+  .tl-item .time{ color:var(--s-muted); font-weight:700; font-size:18px; }
+  .tl-item .who{ font-size:23px; font-weight:700; line-height:1.3; }
+  .fd-col.fl .tl-item{ background:var(--fl-soft); border-color:var(--fl); }
+  .fd-col.dl .tl-item{ background:var(--dl-soft); border-color:var(--dl); }
+  .tl-item.done{ opacity:.38; }
+  .tl-item.now{ outline:3px solid var(--alert); position:relative; }
+  .tl-item.now::after{ content:"NOW"; position:absolute; right:8px; top:7px; font-size:15px; font-weight:800;
+    color:#fff; background:var(--alert); border-radius:6px; padding:1px 8px; letter-spacing:.1em; }
+
+  /* 右: スライド */
+  .slides{ position:relative; min-height:0; }
+  .slide{ position:absolute; inset:0; display:flex; flex-direction:column; gap:18px; opacity:0; transition:opacity .8s ease; }
+  .slide.active{ opacity:1; }
+  .slide .cols{ flex:1; display:grid; grid-template-columns:1.15fr 1fr; gap:18px; min-height:0; }
+  .slide .colstack{ display:flex; flex-direction:column; gap:18px; min-height:0; }
+  .slide .colstack .panel{ flex:1; min-height:0; }
+  .slide .panel.full{ flex:1; min-height:0; }
+  .slide-dots{ position:absolute; right:6px; bottom:6px; display:flex; gap:9px; }
+  .slide-dots i{ width:13px; height:13px; border-radius:50%; background:var(--s-line); }
+  .slide-dots i.on{ background:var(--info); }
+
+  /* テロップ */
+  .ticker{ flex:none; height:60px; background:#1d3350; color:#fff; display:flex; align-items:center; overflow:hidden; }
+  .ticker .tag{ flex:none; background:rgba(255,255,255,.18); font-weight:800; font-size:22px; padding:0 22px; height:100%; display:flex; align-items:center; }
+  .ticker .msg{ font-size:24px; padding:0 24px; white-space:nowrap; }
+
+  @media (prefers-reduced-motion: reduce){ .slide{ transition:none; } }
+</style>
+
+<div class="wrap">
+  <h1>サイネージ 決定版レイアウト（クリーンホワイト）</h1>
+  <p class="sub">左1/3: 本日のDL/FL固定（現在時刻に連動して済み/NOWが動く）。右2/3: 2枚スライド（デモは10秒切替、実運用は15〜20秒想定）。内容はダミーです。</p>
+
+  <div class="stage" id="stage">
+    <div class="screen" id="screen">
+      <div class="head">
+        <div class="left">
+          <span class="clock num js-clock">14:32</span>
+          <span class="date js-date">7月9日(木)</span>
+        </div>
+        <div class="now">
+          <span class="chip dl">DL</span><span class="js-now-dl">峰田先生</span>
+          <span style="width:18px;"></span>
+          <span class="chip fl">FL</span><span class="js-now-fl">迫田先生</span>
+        </div>
+        <div class="count num"><span class="label">共通テストまで</span><b class="cnt-days">191</b> 日</div>
+      </div>
+
+      <div class="main">
+        <!-- 左1/3: 本日のDL/FL（固定） -->
+        <div class="panel fd-panel">
+          <h2 class="sec-title">本日の DL / FL</h2>
+          <div class="fd-wrap">
+            <div class="fd-col dl">
+              <h3><span class="chip dl">DL</span></h3>
+              <div class="timeline">
+                <div class="tl-item" data-s="10:00" data-e="16:00"><span class="time num">10:00–16:00</span><span class="who">峰田先生</span></div>
+                <div class="tl-item" data-s="16:00" data-e="16:45"><span class="time num">16:00–16:45</span><span class="who">野村先生</span></div>
+                <div class="tl-item" data-s="16:45" data-e="20:00"><span class="time num">16:45–20:00</span><span class="who">比嘉先生</span></div>
+                <div class="tl-item" data-s="20:00" data-e="21:00"><span class="time num">20:00–21:00</span><span class="who">中山先生</span></div>
+              </div>
+            </div>
+            <div class="fd-col fl">
+              <h3><span class="chip fl">FL</span></h3>
+              <div class="timeline">
+                <div class="tl-item" data-s="14:15" data-e="15:15"><span class="time num">14:15–15:15</span><span class="who">迫田先生</span></div>
+                <div class="tl-item" data-s="15:20" data-e="16:20"><span class="time num">15:20–16:20</span><span class="who">迫田先生</span></div>
+                <div class="tl-item" data-s="16:25" data-e="17:25"><span class="time num">16:25–17:25</span><span class="who">迫田先生</span></div>
+                <div class="tl-item" data-s="17:30" data-e="18:30"><span class="time num">17:30–18:30</span><span class="who">迫田先生・堀田先生</span></div>
+                <div class="tl-item" data-s="18:35" data-e="19:35"><span class="time num">18:35–19:35</span><span class="who">小田先生・岡本先生</span></div>
+                <div class="tl-item" data-s="19:40" data-e="20:40"><span class="time num">19:40–20:40</span><span class="who">小川先生・岡本先生</span></div>
+                <div class="tl-item" data-s="20:45" data-e="21:45"><span class="time num">20:45–21:45</span><span class="who">岡本先生・小川先生・小出先生</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右2/3: スライド -->
+        <div class="slides">
+          <!-- スライド1: 今週の予定・提出リマインド・各班の伝達 -->
+          <div class="slide active">
+            <div class="cols">
+              <div class="panel full">
+                <h2 class="sec-title">今週の予定 <span class="range num">7/6(月)〜7/12(日)</span></h2>
+                <div class="row"><span class="datechip num">7/10(金)</span><span>夏期講習 面談申込 <b class="deadline">締切</b></span></div>
+                <div class="row"><span class="datechip num">7/11(土)</span><span>全国模試(高3・既卒) 集合 8:40</span></div>
+                <div class="row"><span class="datechip num">7/12(日)</span><span>保護者面談日 ※自習室は17時まで</span></div>
+                <div class="row"><span class="datechip num">7/12(日)</span><span>夏の学習計画セミナー 18:00〜</span></div>
+                <div class="row"><span class="datechip num">7/12(日)</span><span>英検二次 面接練習会</span></div>
+              </div>
+              <div class="colstack">
+                <div class="panel">
+                  <h2 class="sec-title warn">提出リマインド</h2>
+                  <div class="row"><span>指導報告書（先週分）</span><span class="deadline" style="margin-left:auto;">本日中</span></div>
+                  <div class="row"><span>夏期シフト希望</span><span class="deadline num" style="margin-left:auto;">7/12まで</span></div>
+                  <div class="row"><span>生徒: 全国模試申込</span><span class="deadline num" style="margin-left:auto;">7/10まで</span></div>
+                </div>
+                <div class="panel">
+                  <h2 class="sec-title">各班の伝達</h2>
+                  <div class="row"><span class="datechip">A班</span><span>面談資料は金曜までに班長へ</span></div>
+                  <div class="row"><span class="datechip">B班</span><span>新カリキュラム説明会 7/14 21:30〜</span></div>
+                </div>
+                <div class="panel">
+                  <h2 class="sec-title fun">シフト・事務募集</h2>
+                  <div class="row"><span class="datechip num">7/13(月)</span><span>教材棚整理 <b class="deadline">あと2名</b></span></div>
+                  <div class="row"><span class="datechip num">金曜</span><span>受付シフト 17時〜 <b class="deadline">あと1名</b></span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- スライド2: 今月のトピック・誕生日/新人紹介・忘れ物 -->
+          <div class="slide">
+            <div class="cols">
+              <div class="panel full">
+                <h2 class="sec-title">今月のトピック <span class="range num">7月</span></h2>
+                <div class="row"><span class="datechip num">7/21〜</span><span>夏期講習 開始</span></div>
+                <div class="row"><span class="datechip num">7/25(土)</span><span>校舎メンテナンス（午前閉館）</span></div>
+                <div class="row"><span class="datechip num">7/31(金)</span><span>7月分 勤怠締め</span></div>
+                <div class="row"><span class="datechip num">8/2(日)</span><span>【先出し】夏期 特別公開授業</span></div>
+              </div>
+              <div class="colstack">
+                <div class="panel">
+                  <h2 class="sec-title fun">誕生日・新人紹介</h2>
+                  <div class="row"><span class="datechip num">7/11</span><span>佐藤先生 お誕生日！🎉</span></div>
+                  <div class="row"><span class="datechip">新人</span><span>山本先生（理系・数学）よろしくお願いします</span></div>
+                </div>
+                <div class="panel">
+                  <h2 class="sec-title warn">忘れもの</h2>
+                  <div class="row"><span>水色の水筒（2F自習室）</span></div>
+                  <div class="row"><span>イヤホンケース（受付前）</span></div>
+                  <div class="row muted"><span>→ 受付で保管しています</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="slide-dots" id="dots"><i class="on"></i><i></i></div>
+        </div>
+      </div>
+
+      <div class="ticker">
+        <div class="tag">今日は何の日</div>
+        <div class="msg">7月9日は「ジェットコースターの日」。1955年のこの日、後楽園ゆうえんちに日本初の本格的なジェットコースターが登場しました。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <h2>この構成のポイント</h2>
+    <ul>
+      <li>左1/3の DL/FL は常時固定。済んだコマは薄く、今のコマは赤枠「NOW」（現在時刻に連動）</li>
+      <li>右2/3はスライド2枚をローテーション。①今週の予定＋リマインド＋各班伝達＋シフト募集 ②今月トピック＋誕生日/新人＋忘れ物</li>
+      <li>右下の点2つが現在のスライド位置。ヘッダーに時計・今の担当・共通テストカウントダウン、最下部に「今日は何の日」テロップ</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+(function(){
+  const stage = document.getElementById('stage');
+  const screen = document.getElementById('screen');
+  function fit(){ screen.style.transform = 'scale(' + (stage.clientWidth / 1920) + ')'; }
+  window.addEventListener('resize', fit); fit();
+
+  // 時計・日付
+  const days = ['日','月','火','水','木','金','土'];
+  function tick(){
+    const n = new Date();
+    document.querySelectorAll('.js-clock').forEach(el =>
+      el.textContent = String(n.getHours()).padStart(2,'0') + ':' + String(n.getMinutes()).padStart(2,'0'));
+    document.querySelectorAll('.js-date').forEach(el =>
+      el.textContent = (n.getMonth()+1) + '月' + n.getDate() + '日(' + days[n.getDay()] + ')');
+    updateTimeline(n);
+  }
+
+  // タイムラインの済み/NOW判定
+  function toMin(s){ const [h,m] = s.split(':').map(Number); return h*60 + m; }
+  function updateTimeline(n){
+    const cur = n.getHours()*60 + n.getMinutes();
+    let nowFl = '—', nowDl = '—';
+    document.querySelectorAll('.tl-item[data-s]').forEach(el => {
+      const s = toMin(el.dataset.s), e = toMin(el.dataset.e);
+      el.classList.toggle('done', cur >= e);
+      const isNow = cur >= s && cur < e;
+      el.classList.toggle('now', isNow);
+      if(isNow){
+        const who = el.querySelector('.who').textContent;
+        if(el.closest('.fd-col').classList.contains('fl')) nowFl = who; else nowDl = who;
+      }
+    });
+    document.querySelector('.js-now-fl').textContent = nowFl;
+    document.querySelector('.js-now-dl').textContent = nowDl;
+  }
+  tick(); setInterval(tick, 15000);
+
+  // カウントダウン（2027-01-16想定）
+  const target = new Date(2027, 0, 16);
+  const today = new Date(); today.setHours(0,0,0,0);
+  document.querySelectorAll('.cnt-days').forEach(el => el.textContent = Math.round((target - today) / 86400000));
+
+  // スライドローテーション（デモ10秒）
+  const slides = document.querySelectorAll('.slide');
+  const dots = document.querySelectorAll('#dots i');
+  let i = 0;
+  setInterval(() => {
+    i = (i + 1) % slides.length;
+    slides.forEach((s, j) => s.classList.toggle('active', j === i));
+    dots.forEach((d, j) => d.classList.toggle('on', j === i));
+  }, 10000);
+})();
+</script>
