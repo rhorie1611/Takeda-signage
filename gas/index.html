@@ -47,6 +47,13 @@
   .recruit-row .chip{ font-size:23px; padding:3px 14px; margin-right:6px; }
   .recruit-parts{ display:flex; flex-wrap:wrap; align-items:center; gap:10px 6px; line-height:1.9; }
 
+  .notice-stack{ flex:1; display:flex; flex-direction:column; gap:18px; min-height:0; }
+  .notice-stack .panel{ min-height:0; overflow-y:auto; }
+  .notice-overall{ flex:1.4; }
+  .notice-teams{ flex:1; }
+  .notice-overall .row{ font-size:28px; }
+  .notice-overall .row::before{ content:"・"; color:var(--info); font-weight:800; margin-right:2px; }
+
   .head{ flex:none; height:92px; display:flex; align-items:center; justify-content:space-between;
     padding:0 36px; background:#ffffff; border-bottom:2px solid var(--line); }
   .head .left{ display:flex; align-items:baseline; gap:18px; }
@@ -139,10 +146,19 @@
               <h2 class="sec-title warn">提出リマインド</h2>
               <div id="reminders"></div>
             </div>
-            <div class="panel">
-              <h2 class="sec-title">各班の伝達</h2>
-              <div id="teams"></div>
-            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="notice-stack">
+          <div class="panel notice-overall">
+            <h2 class="sec-title">校舎からの連絡</h2>
+            <div id="notice-overall"></div>
+          </div>
+          <div class="panel notice-teams">
+            <h2 class="sec-title">各班の連絡</h2>
+            <div id="notice-teams"></div>
           </div>
         </div>
       </div>
@@ -173,7 +189,7 @@
         </div>
       </div>
 
-      <div class="slide-dots" id="dots"><i class="on"></i><i></i><i></i></div>
+      <div class="slide-dots" id="dots"><i class="on"></i><i></i><i></i><i></i></div>
     </div>
   </div>
 
@@ -243,8 +259,10 @@ function render(){
     '<div class="row"><span>' + (x.target ? '<span class="datechip">' + esc(x.target) + '</span> ' : '') +
     esc(x.text) + '</span><span class="deadline num" style="margin-left:auto;">' + esc(x.due) + '</span></div>').join(''));
 
-  // 各班の伝達
-  setRows('teams', d.teams.map(x =>
+  // 校舎からの連絡（全体・各班）
+  setRows('notice-overall', d.notices.overall.map(text =>
+    '<div class="row"><span>' + esc(text) + '</span></div>').join(''));
+  setRows('notice-teams', d.notices.teams.map(x =>
     '<div class="row"><span class="datechip">' + esc(x.team) + '</span><span>' + esc(x.text) + '</span></div>').join(''));
 
   // FL・DL募集（日付ごとに区分チップ＋内容を並べる）

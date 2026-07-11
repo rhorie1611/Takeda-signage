@@ -20,7 +20,7 @@ function setupAll() {
   setupSchedule_(ss);
   setupAnnual_(ss);
   setupReminder_(ss);
-  setupTeams_(ss);
+  setupNotices_(ss);
   setupRecruit_(ss);
   setupBirthday_(ss);
   setupNewcomer_(ss);
@@ -73,12 +73,16 @@ function setupReminder_(ss) {
   ]);
 }
 
-function setupTeams_(ss) {
-  const sh = getOrCreateSheet_(ss, '各班の伝達');
-  header_(sh, ['班', '内容', '掲載終了日'], [90, 520, 120]);
-  noteRow_(sh, '班名はそのままチップ表示されます（例: A班）。');
+function setupNotices_(ss) {
+  const sh = getOrCreateSheet_(ss, '校舎からの連絡');
+  header_(sh, ['区分', '内容', '掲載終了日'], [110, 500, 120]);
+  noteRow_(sh, '区分が「全体」なら校舎全体の連絡として、それ以外（A班など）は班名チップ付きの各班の連絡として表示されます。');
   dateRule_(sh, 'C2:C500');
-  sample_(sh, [['A班', '面談資料は金曜までに班長へ', today_(3)]]);
+  listRule_(sh, 'A2:A500', ['全体', 'A班', 'B班', 'C班', 'D班']);
+  sample_(sh, [
+    ['全体', '台風接近のため明日は開校時間を変更する可能性があります。詳細は追って連絡します。', today_(2)],
+    ['A班', '面談資料は金曜までに班長へ提出してください', today_(3)],
+  ]);
 }
 
 function setupRecruit_(ss) {

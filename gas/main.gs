@@ -18,7 +18,7 @@ function doGet() {
     data = {
       config: { slideSeconds: 20, refreshMinutes: 5 },
       countdown: null, fl: [], dl: [], weekly: [], monthly: [],
-      reminders: [], teams: [], recruit: [], people: [], lost: [],
+      reminders: [], notices: { overall: [], teams: [] }, recruit: [], people: [], lost: [],
       ticker: [{ tag: 'エラー', text: 'データ取得に失敗しました: ' + err }],
     };
   }
@@ -46,7 +46,7 @@ function getData() {
     weekly: schedule.weekly,
     monthly: schedule.monthly,
     reminders: getReminders_(ss, today),
-    teams: getTeams_(ss, today),
+    notices: getNotices_(ss, today),
     recruit: getRecruit_(ss, today, Number(cfg['FL・DL募集 表示日数']) || 6),
     people: getPeople_(ss, today, Number(cfg['誕生日表示日数']) || 3),
     lost: getLost_(ss, cfg['忘れ物写真フォルダID']),
@@ -175,12 +175,18 @@ function getReminders_(ss, today) {
   }).filter(x => x && x.text);
 }
 
-function getTeams_(ss, today) {
-  return readRows_(ss, '各班の伝達').map(r => {
+function getNotices_(ss, today) {
+  const items = readRows_(ss, '校舎からの連絡').map(r => {
     const end = asDate_(r[2]);
     if (end && end < today) return null;
-    return { team: String(r[0] || ''), text: String(r[1] || '') };
+    const scope = String(r[0] || '').trim();
+    return { scope: scope, text: String(r[1] || '') };
   }).filter(x => x && x.text);
+
+  return {
+    overall: items.filter(x => !x.scope || x.scope === '全体').map(x => x.text),
+    teams: items.filter(x => x.scope && x.scope !== '全体').map(x => ({ team: x.scope, text: x.text })),
+  };
 }
 
 // 区分ごとのチップ色クラス（CSS側の .chip.fl / .chip.dl / .chip.sun / .chip.staff / .chip.other に対応）
