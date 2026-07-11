@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>サイネージ</title>
+<style>
+  html, body{ margin:0; padding:0; width:100%; height:100%; background:#000; overflow:hidden;
+    font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP","Yu Gothic UI",Meiryo,sans-serif; }
+
+  /* 1920x1080でデザインし、実画面サイズに合わせて拡縮する */
+  #screen{ width:1920px; height:1080px; transform-origin:top left; position:absolute;
+    display:flex; flex-direction:column;
+    --ground:#f6f8fb; --card:#ffffff; --line:#d8e1ec; --soft:#eef3f9;
+    --text:#1c2a3a; --muted:#64748b;
+    --fl:#f59e0b; --fl-ink:#3d2800; --fl-soft:#fef3dd;
+    --dl:#0e9f9e; --dl-ink:#ffffff; --dl-soft:#dcf5f4;
+    --info:#2f6fb2; --alert:#d64545; --fun:#c26bb5;
+    background:var(--ground); color:var(--text); }
+  #screen *{ box-sizing:border-box; }
+  .num{ font-variant-numeric:tabular-nums; }
+
+  .chip{ display:inline-block; padding:1px 12px; border-radius:999px; font-size:20px; font-weight:800; letter-spacing:.06em; flex:none; }
+  .chip.fl{ background:var(--fl); color:var(--fl-ink); }
+  .chip.dl{ background:var(--dl); color:var(--dl-ink); }
+  .panel{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px 26px; overflow:hidden;
+    box-shadow:0 1px 4px rgba(24,40,64,.06); }
+  .sec-title{ font-size:28px; font-weight:800; letter-spacing:.03em; margin:0 0 14px; display:flex; align-items:center; gap:12px; }
+  .sec-title::before{ content:""; width:10px; height:28px; border-radius:4px; background:var(--info); flex:none; }
+  .sec-title.warn::before{ background:var(--alert); }
+  .sec-title.fun::before{ background:var(--fun); }
+  .sec-title .range{ font-size:21px; color:var(--muted); font-weight:600; margin-left:auto; }
+  .row{ display:flex; align-items:baseline; gap:14px; font-size:25px; line-height:1.45; }
+  .row + .row{ margin-top:12px; }
+  .datechip{ flex:none; min-width:116px; text-align:center; background:var(--soft); border:1px solid var(--line);
+    border-radius:8px; padding:1px 8px; font-weight:700; font-size:21px; color:var(--muted); }
+  .deadline{ color:var(--alert); font-weight:800; white-space:nowrap; }
+  .muted{ color:var(--muted); }
+  .empty{ color:var(--muted); font-size:23px; }
+
+  .head{ flex:none; height:92px; display:flex; align-items:center; justify-content:space-between;
+    padding:0 36px; background:#ffffff; border-bottom:2px solid var(--line); }
+  .head .left{ display:flex; align-items:baseline; gap:18px; }
+  .head .clock{ font-size:48px; font-weight:800; line-height:1; }
+  .head .date{ font-size:28px; color:var(--muted); font-weight:600; }
+  .head .now{ display:flex; align-items:center; gap:12px; font-size:26px; font-weight:800; }
+  .head .count{ font-size:26px; font-weight:800; display:flex; align-items:baseline; gap:10px; }
+  .head .count .label{ color:var(--muted); font-weight:700; }
+  .head .count b{ color:var(--alert); font-size:44px; }
+
+  .main{ flex:1; display:grid; grid-template-columns:1fr 2fr; gap:18px; padding:18px 36px; min-height:0; }
+
+  .fd-panel{ display:flex; flex-direction:column; min-height:0; }
+  .fd-wrap{ flex:1; display:grid; grid-template-columns:1fr 1.3fr; gap:16px; min-height:0; }
+  .fd-col h3{ margin:0 0 10px; font-size:21px; font-weight:800; display:flex; align-items:center; gap:8px; color:var(--muted); letter-spacing:.08em; }
+  .timeline{ display:flex; flex-direction:column; gap:8px; }
+  .tl-item{ display:flex; flex-direction:column; gap:1px; padding:8px 13px; border-radius:9px; border:1px solid var(--line); background:var(--soft); }
+  .tl-item .time{ color:var(--muted); font-weight:700; font-size:18px; }
+  .tl-item .who{ font-size:23px; font-weight:700; line-height:1.3; }
+  .fd-col.fl .tl-item{ background:var(--fl-soft); border-color:var(--fl); }
+  .fd-col.dl .tl-item{ background:var(--dl-soft); border-color:var(--dl); }
+  .tl-item.done{ opacity:.38; }
+  .tl-item.now{ outline:3px solid var(--alert); position:relative; }
+  .tl-item.now::after{ content:"NOW"; position:absolute; right:8px; top:7px; font-size:15px; font-weight:800;
+    color:#fff; background:var(--alert); border-radius:6px; padding:1px 8px; letter-spacing:.1em; }
+
+  .slides{ position:relative; min-height:0; }
+  .slide{ position:absolute; inset:0; display:flex; flex-direction:column; gap:18px; opacity:0; transition:opacity .8s ease; }
+  .slide.active{ opacity:1; }
+  .slide .cols{ flex:1; display:grid; grid-template-columns:1.15fr 1fr; gap:18px; min-height:0; }
+  .slide .colstack{ display:flex; flex-direction:column; gap:18px; min-height:0; }
+  .slide .colstack .panel{ flex:1; min-height:0; }
+  .slide .panel.full{ flex:1; min-height:0; }
+  .slide-dots{ position:absolute; right:6px; bottom:6px; display:flex; gap:9px; }
+  .slide-dots i{ width:13px; height:13px; border-radius:50%; background:var(--line); }
+  .slide-dots i.on{ background:var(--info); }
+
+  .lost-item{ display:flex; align-items:center; gap:14px; }
+  .lost-item img{ width:72px; height:72px; object-fit:cover; border-radius:8px; border:1px solid var(--line); flex:none; }
+
+  .ticker{ flex:none; height:60px; background:#1d3350; color:#fff; display:flex; align-items:center; overflow:hidden; }
+  .ticker .tag{ flex:none; background:rgba(255,255,255,.18); font-weight:800; font-size:22px; padding:0 22px; height:100%; display:flex; align-items:center; }
+  .ticker .msg{ font-size:24px; padding:0 24px; white-space:nowrap; }
+
+  @media (prefers-reduced-motion: reduce){ .slide{ transition:none; } }
+</style>
+</head>
+<body>
+<div id="screen">
+  <div class="head">
+    <div class="left">
+      <span class="clock num" id="clock">--:--</span>
+      <span class="date" id="date"></span>
+    </div>
+    <div class="now">
+      <span class="chip dl">DL</span><span id="now-dl">—</span>
+      <span style="width:18px;"></span>
+      <span class="chip fl">FL</span><span id="now-fl">—</span>
+    </div>
+    <div class="count num" id="countdown"></div>
+  </div>
+
+  <div class="main">
+    <div class="panel fd-panel">
+      <h2 class="sec-title">本日の DL / FL</h2>
+      <div class="fd-wrap">
+        <div class="fd-col dl">
+          <h3><span class="chip dl">DL</span></h3>
+          <div class="timeline" id="tl-dl"></div>
+        </div>
+        <div class="fd-col fl">
+          <h3><span class="chip fl">FL</span></h3>
+          <div class="timeline" id="tl-fl"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slides">
+      <div class="slide active">
+        <div class="cols">
+          <div class="panel full">
+            <h2 class="sec-title">今週の予定 <span class="range num" id="week-range"></span></h2>
+            <div id="weekly"></div>
+          </div>
+          <div class="colstack">
+            <div class="panel">
+              <h2 class="sec-title warn">提出リマインド</h2>
+              <div id="reminders"></div>
+            </div>
+            <div class="panel">
+              <h2 class="sec-title">各班の伝達</h2>
+              <div id="teams"></div>
+            </div>
+            <div class="panel">
+              <h2 class="sec-title fun">シフト・事務募集</h2>
+              <div id="recruit"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="cols">
+          <div class="panel full">
+            <h2 class="sec-title">今月のトピック <span class="range num" id="month-label"></span></h2>
+            <div id="monthly"></div>
+          </div>
+          <div class="colstack">
+            <div class="panel">
+              <h2 class="sec-title fun">誕生日・新人紹介</h2>
+              <div id="people"></div>
+            </div>
+            <div class="panel">
+              <h2 class="sec-title warn">忘れもの</h2>
+              <div id="lost"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-dots" id="dots"><i class="on"></i><i></i></div>
+    </div>
+  </div>
+
+  <div class="ticker">
+    <div class="tag" id="ticker-tag"></div>
+    <div class="msg" id="ticker-msg"></div>
+  </div>
+</div>
+
+<script>
+let DATA = JSON.parse(<?!= JSON.stringify(initial) ?>);
+
+/* ---------- 画面フィット ---------- */
+const screenEl = document.getElementById('screen');
+function fit(){
+  const s = Math.min(innerWidth / 1920, innerHeight / 1080);
+  screenEl.style.transform = 'scale(' + s + ')';
+  screenEl.style.left = ((innerWidth - 1920 * s) / 2) + 'px';
+  screenEl.style.top = ((innerHeight - 1080 * s) / 2) + 'px';
+}
+addEventListener('resize', fit); fit();
+
+/* ---------- ユーティリティ ---------- */
+function esc(s){
+  return String(s).replace(/[&<>"']/g, c =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function setRows(id, html){
+  document.getElementById(id).innerHTML = html || '<div class="empty">（今日はありません）</div>';
+}
+const WD = ['日','月','火','水','木','金','土'];
+function label(d){ return (d.getMonth()+1) + '/' + d.getDate() + '(' + WD[d.getDay()] + ')'; }
+
+/* ---------- 描画 ---------- */
+function render(){
+  const d = DATA;
+
+  // カウントダウン
+  document.getElementById('countdown').innerHTML = d.countdown
+    ? '<span class="label">' + esc(d.countdown.label) + '</span><b>' + d.countdown.days + '</b> 日'
+    : '';
+
+  // FL/DL タイムライン
+  const tl = list => list.map(x =>
+    '<div class="tl-item" data-s="' + esc(x.s) + '" data-e="' + esc(x.e) + '">' +
+    '<span class="time num">' + esc(x.s) + '–' + esc(x.e) + '</span>' +
+    '<span class="who">' + esc(x.who) + '</span></div>').join('');
+  document.getElementById('tl-dl').innerHTML = tl(d.dl) || '<div class="empty">予定なし</div>';
+  document.getElementById('tl-fl').innerHTML = tl(d.fl) || '<div class="empty">予定なし</div>';
+
+  // 今週の範囲ラベル
+  const now = new Date();
+  const mon = new Date(now); mon.setDate(mon.getDate() - ((now.getDay() + 6) % 7));
+  const sun = new Date(mon); sun.setDate(sun.getDate() + 6);
+  document.getElementById('week-range').textContent = label(mon) + '〜' + label(sun);
+  document.getElementById('month-label').textContent = (now.getMonth() + 1) + '月';
+
+  // 予定（週・月）
+  const evRow = x =>
+    '<div class="row"><span class="datechip num">' + esc(x.label) + '</span><span>' + esc(x.text) +
+    (x.emph ? ' <b class="deadline">締切</b>' : '') + '</span></div>';
+  setRows('weekly', d.weekly.map(evRow).join(''));
+  setRows('monthly', d.monthly.map(evRow).join(''));
+
+  // リマインド
+  setRows('reminders', d.reminders.map(x =>
+    '<div class="row"><span>' + (x.target ? '<span class="datechip">' + esc(x.target) + '</span> ' : '') +
+    esc(x.text) + '</span><span class="deadline num" style="margin-left:auto;">' + esc(x.due) + '</span></div>').join(''));
+
+  // 各班の伝達
+  setRows('teams', d.teams.map(x =>
+    '<div class="row"><span class="datechip">' + esc(x.team) + '</span><span>' + esc(x.text) + '</span></div>').join(''));
+
+  // 募集
+  setRows('recruit', d.recruit.map(x =>
+    '<div class="row"><span class="datechip num">' + esc(x.when) + '</span><span>' + esc(x.text) +
+    (x.left ? ' <b class="deadline">' + esc(x.left) + '</b>' : '') + '</span></div>').join(''));
+
+  // 誕生日・新人
+  setRows('people', d.people.map(x =>
+    '<div class="row"><span class="datechip num">' + esc(x.tag) + '</span><span>' + esc(x.text) + '</span></div>').join(''));
+
+  // 忘れもの
+  setRows('lost', d.lost.map(x =>
+    '<div class="row lost-item">' + (x.photo ? '<img src="' + x.photo + '" alt="">' : '') +
+    '<span>' + esc(x.item) + (x.place ? '（' + esc(x.place) + '）' : '') + '</span></div>').join('') +
+    (d.lost.length ? '<div class="row muted" style="margin-top:12px;"><span>→ 受付で保管しています</span></div>' : ''));
+
+  tickClock();
+}
+
+/* ---------- 時計・NOW判定 ---------- */
+function toMin(s){ const p = s.split(':'); return Number(p[0]) * 60 + Number(p[1]); }
+function tickClock(){
+  const n = new Date();
+  document.getElementById('clock').textContent =
+    String(n.getHours()).padStart(2,'0') + ':' + String(n.getMinutes()).padStart(2,'0');
+  document.getElementById('date').textContent =
+    (n.getMonth()+1) + '月' + n.getDate() + '日(' + WD[n.getDay()] + ')';
+
+  const cur = n.getHours() * 60 + n.getMinutes();
+  let nowFl = '—', nowDl = '—';
+  document.querySelectorAll('.tl-item[data-s]').forEach(el => {
+    const s = toMin(el.dataset.s), e = toMin(el.dataset.e);
+    el.classList.toggle('done', cur >= e);
+    const isNow = cur >= s && cur < e;
+    el.classList.toggle('now', isNow);
+    if(isNow){
+      const who = el.querySelector('.who').textContent;
+      if(el.closest('.fd-col').classList.contains('fl')) nowFl = who; else nowDl = who;
+    }
+  });
+  document.getElementById('now-fl').textContent = nowFl;
+  document.getElementById('now-dl').textContent = nowDl;
+}
+setInterval(tickClock, 15000);
+
+/* ---------- スライド ---------- */
+let slideIdx = 0;
+function rotateSlides(){
+  const slides = document.querySelectorAll('.slide');
+  const dots = document.querySelectorAll('#dots i');
+  slideIdx = (slideIdx + 1) % slides.length;
+  slides.forEach((s, j) => s.classList.toggle('active', j === slideIdx));
+  dots.forEach((d, j) => d.classList.toggle('on', j === slideIdx));
+}
+setInterval(rotateSlides, (DATA.config.slideSeconds || 20) * 1000);
+
+/* ---------- テロップ ---------- */
+let tickerIdx = 0;
+function rotateTicker(){
+  const items = DATA.ticker;
+  if(!items.length){
+    document.getElementById('ticker-tag').textContent = '';
+    document.getElementById('ticker-msg').textContent = '';
+    return;
+  }
+  tickerIdx = tickerIdx % items.length;
+  document.getElementById('ticker-tag').textContent = items[tickerIdx].tag;
+  document.getElementById('ticker-msg').textContent = items[tickerIdx].text;
+  tickerIdx++;
+}
+setInterval(rotateTicker, 12000);
+
+/* ---------- データ再取得・日次リロード ---------- */
+function refresh(){
+  google.script.run
+    .withSuccessHandler(json => { DATA = json; render(); })
+    .withFailureHandler(() => {}) // 一時的な失敗は無視して前のデータを出し続ける
+    .getData();
+}
+setInterval(refresh, (DATA.config.refreshMinutes || 5) * 60 * 1000);
+
+// 毎日早朝にページごとリロード（コード更新の取り込みとメモリ掃除）
+setInterval(() => {
+  const n = new Date();
+  if(n.getHours() === 4 && n.getMinutes() === 0) location.reload();
+}, 45000);
+
+render();
+rotateTicker();
+</script>
+</body>
+</html>
