@@ -71,8 +71,33 @@ function getLeaders_(calId) {
       .filter(x => x.who)
       .sort((a, b) => a.s.localeCompare(b.s));
   } catch (err) {
-    return [{ s: '', e: '', who: 'カレンダー取得エラー' }];
+    return [{ s: '', e: '', who: 'カレンダー取得エラー: ' + err }];
   }
+}
+
+/**
+ * カレンダー取得の切り分け用。Apps Scriptエディタで実行し、
+ * 「実行ログ」に出る内容をそのまま確認してください。
+ */
+function debugCalendars_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const cfg = readConfig_(ss);
+  ['FLカレンダーID', 'DLカレンダーID'].forEach(key => {
+    const id = String(cfg[key] || '').trim();
+    Logger.log(key + ' = "' + id + '"');
+    if (!id) { Logger.log('  → 設定シートが空です'); return; }
+    try {
+      const cal = CalendarApp.getCalendarById(id);
+      if (!cal) {
+        Logger.log('  → getCalendarById は null を返しました（このアカウントに共有されていない/IDが違う可能性）');
+        return;
+      }
+      Logger.log('  → OK: ' + cal.getName() + '（本日のイベント数: ' + cal.getEventsForDay(new Date()).length + '）');
+    } catch (err) {
+      Logger.log('  → エラー: ' + err);
+    }
+  });
+  Logger.log('実行アカウント: ' + Session.getActiveUser().getEmail());
 }
 
 // 「※【FL】井上、岡田」→「井上、岡田」
