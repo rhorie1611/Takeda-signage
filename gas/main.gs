@@ -203,8 +203,7 @@ function getRecruit_(ss, today, limitDates) {
     if (!d || !type || !content) return;
     lastDate = d; lastType = type;
     const count = r[3];
-    const need = (count !== '' && count != null) ? 'あと' + count + '人' : '';
-    parsed.push({ date: d, type: type, text: need ? content + ' ' + need : content });
+    parsed.push({ date: d, type: type, content: content, count: (count !== '' && count != null) ? count : null });
   });
 
   const byDate = {};
@@ -212,7 +211,8 @@ function getRecruit_(ss, today, limitDates) {
     if (p.date < today) return;
     const key = p.date.getTime();
     if (!byDate[key]) byDate[key] = { date: p.date, types: {} };
-    (byDate[key].types[p.type] = byDate[key].types[p.type] || []).push(p.text);
+    (byDate[key].types[p.type] = byDate[key].types[p.type] || [])
+      .push({ content: p.content, count: p.count });
   });
 
   return Object.keys(byDate).map(Number).sort((a, b) => a - b)
@@ -224,7 +224,7 @@ function getRecruit_(ss, today, limitDates) {
         parts: Object.keys(g.types).map(type => ({
           type: type,
           chipClass: RECRUIT_CHIP_CLASS[type] || 'other',
-          text: g.types[type].join(' ／ '),
+          items: g.types[type],
         })),
       };
     });

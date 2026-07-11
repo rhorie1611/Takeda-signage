@@ -44,8 +44,10 @@
   .recruit-panel #recruit{ flex:1; display:flex; flex-direction:column; justify-content:center; gap:26px; }
   .recruit-row{ align-items:flex-start; font-size:30px; gap:20px; }
   .recruit-row .datechip{ min-width:150px; font-size:25px; padding:5px 10px; margin-top:4px; }
-  .recruit-row .chip{ font-size:23px; padding:3px 14px; margin-right:6px; }
-  .recruit-parts{ display:flex; flex-wrap:wrap; align-items:center; gap:10px 6px; line-height:1.9; }
+  .recruit-row .chip{ font-size:23px; padding:3px 14px; }
+  .recruit-parts{ display:flex; flex-wrap:wrap; align-items:center; gap:14px 28px; line-height:1.9; }
+  .recruit-part{ display:inline-flex; align-items:center; gap:10px; }
+  .need{ color:var(--info); font-weight:800; }
 
   .notice-stack{ flex:1; display:flex; flex-direction:column; gap:18px; min-height:0; }
   .notice-stack .panel{ min-height:0; overflow-y:auto; }
@@ -265,12 +267,14 @@ function render(){
   setRows('notice-teams', d.notices.teams.map(x =>
     '<div class="row"><span class="datechip">' + esc(x.team) + '</span><span>' + esc(x.text) + '</span></div>').join(''));
 
-  // FL・DL募集（日付ごとに区分チップ＋内容を並べる）
+  // FL・DL募集（日付ごとに区分チップ＋内容を並べる。チップとテキストは1枠にまとめて折り返しがずれないようにする）
+  const itemText = it => esc(it.content) + (it.count != null ? ' <b class="need">' + esc(it.count) + '人</b>' : '');
   setRows('recruit', d.recruit.map(g =>
     '<div class="row recruit-row"><span class="datechip num">' + esc(g.label) + '</span>' +
     '<span class="recruit-parts">' + g.parts.map(p =>
-      '<span class="chip ' + esc(p.chipClass) + '">' + esc(p.type) + '</span> ' + esc(p.text)
-    ).join('&nbsp;&nbsp;') + '</span></div>').join(''));
+      '<span class="recruit-part"><span class="chip ' + esc(p.chipClass) + '">' + esc(p.type) + '</span>' +
+      '<span>' + p.items.map(itemText).join(' ／ ') + '</span></span>'
+    ).join('') + '</span></div>').join(''));
 
   // 誕生日・新人
   setRows('people', d.people.map(x =>
