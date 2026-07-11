@@ -41,8 +41,8 @@ function getData() {
       refreshMinutes: Number(cfg['データ更新間隔(分)']) || 5,
     },
     countdown: getCountdown_(ss, today),
-    fl: getLeaders_(cfg['FLカレンダーID']),
-    dl: getLeaders_(cfg['DLカレンダーID']),
+    fl: getLeaders_(cfg['FLカレンダーID'], true),
+    dl: getLeaders_(cfg['DLカレンダーID'], false),
     weekly: schedule.weekly,
     monthly: schedule.monthly,
     reminders: getReminders_(ss, today),
@@ -56,7 +56,7 @@ function getData() {
 
 /* ================= FL/DL（カレンダー） ================= */
 
-function getLeaders_(calId) {
+function getLeaders_(calId, requireFlTag) {
   if (!calId) return [];
   try {
     const cal = CalendarApp.getCalendarById(String(calId).trim());
@@ -66,7 +66,7 @@ function getLeaders_(calId) {
       .map(ev => ({
         s: fmt_(ev.getStartTime(), 'HH:mm'),
         e: fmt_(ev.getEndTime(), 'HH:mm'),
-        who: parseName_(ev.getTitle()),
+        who: parseName_(ev.getTitle(), requireFlTag),
       }))
       .filter(x => x.who)
       .sort((a, b) => a.s.localeCompare(b.s));
@@ -100,12 +100,15 @@ function debugCalendars_() {
   Logger.log('実行アカウント: ' + Session.getActiveUser().getEmail());
 }
 
-// 「※【FL】井上、岡田」→「井上、岡田」
-function parseName_(title) {
-  return String(title || '')
-    .replace(/^[※\s]+/, '')
-    .replace(/【[^】]*】/g, '')
-    .trim();
+// FL: 「※【FL】井上、岡田」→「井上、岡田」。【FL】から始まらない予定（面談・面接練習等）は除外
+// DL: タグなしでそのままの予定名を使う
+function parseName_(title, requireFlTag) {
+  const raw = String(title || '').replace(/^[※\s]+/, '').trim();
+  if (requireFlTag) {
+    const m = raw.match(/^【FL】\s*(.*)$/);
+    return m ? m[1].trim() : '';
+  }
+  return raw.replace(/【[^】]*】/g, '').trim();
 }
 
 /* ================= 予定（週・月 自動振り分け） ================= */
