@@ -41,6 +41,9 @@
     padding:0 36px; background:#ffffff; border-bottom:2px solid var(--line); }
   .head .left{ display:flex; align-items:baseline; gap:18px; }
   .head .clock{ font-size:48px; font-weight:800; line-height:1; }
+  .head .clock .colon{ animation:blink 1s step-end infinite; }
+  @keyframes blink{ 50%{ opacity:0; } }
+  @media (prefers-reduced-motion: reduce){ .head .clock .colon{ animation:none; } }
   .head .date{ font-size:28px; color:var(--muted); font-weight:600; }
   .head .now{ display:flex; align-items:center; gap:12px; font-size:26px; font-weight:800; }
   .head .count{ font-size:26px; font-weight:800; display:flex; align-items:baseline; gap:10px; }
@@ -251,27 +254,32 @@ function render(){
 
 /* ---------- 時計・NOW判定 ---------- */
 function toMin(s){ const p = s.split(':'); return Number(p[0]) * 60 + Number(p[1]); }
+
+// 列内で「まだ終わっていない最初の枠」をNOWにする（枠の間の空き時間も次の枠がNOWのまま）。
+// 全部終わっていればNOWなし・全部doneにするだけ。
+function updateColumn_(sel, cur){
+  const items = document.querySelectorAll(sel + ' .tl-item[data-s]');
+  let nowSet = false, who = '—';
+  items.forEach(el => {
+    const done = cur >= toMin(el.dataset.e);
+    el.classList.toggle('done', done);
+    const isNow = !done && !nowSet;
+    el.classList.toggle('now', isNow);
+    if(isNow){ nowSet = true; who = el.querySelector('.who').textContent; }
+  });
+  return who;
+}
+
 function tickClock(){
   const n = new Date();
-  document.getElementById('clock').textContent =
-    String(n.getHours()).padStart(2,'0') + ':' + String(n.getMinutes()).padStart(2,'0');
+  document.getElementById('clock').innerHTML =
+    String(n.getHours()).padStart(2,'0') + '<span class="colon">:</span>' + String(n.getMinutes()).padStart(2,'0');
   document.getElementById('date').textContent =
     (n.getMonth()+1) + '月' + n.getDate() + '日(' + WD[n.getDay()] + ')';
 
   const cur = n.getHours() * 60 + n.getMinutes();
-  let nowFl = '—', nowDl = '—';
-  document.querySelectorAll('.tl-item[data-s]').forEach(el => {
-    const s = toMin(el.dataset.s), e = toMin(el.dataset.e);
-    el.classList.toggle('done', cur >= e);
-    const isNow = cur >= s && cur < e;
-    el.classList.toggle('now', isNow);
-    if(isNow){
-      const who = el.querySelector('.who').textContent;
-      if(el.closest('.fd-col').classList.contains('fl')) nowFl = who; else nowDl = who;
-    }
-  });
-  document.getElementById('now-fl').textContent = nowFl;
-  document.getElementById('now-dl').textContent = nowDl;
+  document.getElementById('now-fl').textContent = updateColumn_('#tl-fl', cur);
+  document.getElementById('now-dl').textContent = updateColumn_('#tl-dl', cur);
 }
 setInterval(tickClock, 15000);
 
