@@ -41,7 +41,7 @@
     padding:0 36px; background:#ffffff; border-bottom:2px solid var(--line); }
   .head .left{ display:flex; align-items:baseline; gap:18px; }
   .head .clock{ font-size:48px; font-weight:800; line-height:1; }
-  .head .clock .colon{ animation:blink 1s step-end infinite; }
+  .head .clock .colon{ animation:blink 1s step-end infinite; display:inline-block; transform:translateY(-0.1em); }
   @keyframes blink{ 50%{ opacity:0; } }
   @media (prefers-reduced-motion: reduce){ .head .clock .colon{ animation:none; } }
   .head .date{ font-size:28px; color:var(--muted); font-weight:600; }
