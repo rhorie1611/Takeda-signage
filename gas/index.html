@@ -22,6 +22,9 @@
   .chip{ display:inline-block; padding:1px 12px; border-radius:999px; font-size:20px; font-weight:800; letter-spacing:.06em; flex:none; }
   .chip.fl{ background:var(--fl); color:var(--fl-ink); }
   .chip.dl{ background:var(--dl); color:var(--dl-ink); }
+  .chip.sun{ background:var(--fun); color:#ffffff; }
+  .chip.staff{ background:var(--info); color:#ffffff; }
+  .chip.other{ background:var(--muted); color:#ffffff; }
   .panel{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px 26px; overflow:hidden;
     box-shadow:0 1px 4px rgba(24,40,64,.06); }
   .sec-title{ font-size:28px; font-weight:800; letter-spacing:.03em; margin:0 0 14px; display:flex; align-items:center; gap:12px; }
@@ -36,6 +39,13 @@
   .deadline{ color:var(--alert); font-weight:800; white-space:nowrap; }
   .muted{ color:var(--muted); }
   .empty{ color:var(--muted); font-size:23px; }
+
+  .recruit-panel{ display:flex; flex-direction:column; }
+  .recruit-panel #recruit{ flex:1; display:flex; flex-direction:column; justify-content:center; gap:26px; }
+  .recruit-row{ align-items:flex-start; font-size:30px; gap:20px; }
+  .recruit-row .datechip{ min-width:150px; font-size:25px; padding:5px 10px; margin-top:4px; }
+  .recruit-row .chip{ font-size:23px; padding:3px 14px; margin-right:6px; }
+  .recruit-parts{ display:flex; flex-wrap:wrap; align-items:center; gap:10px 6px; line-height:1.9; }
 
   .head{ flex:none; height:92px; display:flex; align-items:center; justify-content:space-between;
     padding:0 36px; background:#ffffff; border-bottom:2px solid var(--line); }
@@ -133,10 +143,6 @@
               <h2 class="sec-title">各班の伝達</h2>
               <div id="teams"></div>
             </div>
-            <div class="panel">
-              <h2 class="sec-title fun">シフト・事務募集</h2>
-              <div id="recruit"></div>
-            </div>
           </div>
         </div>
       </div>
@@ -160,7 +166,14 @@
         </div>
       </div>
 
-      <div class="slide-dots" id="dots"><i class="on"></i><i></i></div>
+      <div class="slide">
+        <div class="panel full recruit-panel">
+          <h2 class="sec-title fun">FL・DL募集 <span class="range">お手すきの方はぜひ</span></h2>
+          <div id="recruit"></div>
+        </div>
+      </div>
+
+      <div class="slide-dots" id="dots"><i class="on"></i><i></i><i></i></div>
     </div>
   </div>
 
@@ -234,10 +247,12 @@ function render(){
   setRows('teams', d.teams.map(x =>
     '<div class="row"><span class="datechip">' + esc(x.team) + '</span><span>' + esc(x.text) + '</span></div>').join(''));
 
-  // 募集
-  setRows('recruit', d.recruit.map(x =>
-    '<div class="row"><span class="datechip num">' + esc(x.when) + '</span><span>' + esc(x.text) +
-    (x.left ? ' <b class="deadline">' + esc(x.left) + '</b>' : '') + '</span></div>').join(''));
+  // FL・DL募集（日付ごとに区分チップ＋内容を並べる）
+  setRows('recruit', d.recruit.map(g =>
+    '<div class="row recruit-row"><span class="datechip num">' + esc(g.label) + '</span>' +
+    '<span class="recruit-parts">' + g.parts.map(p =>
+      '<span class="chip ' + esc(p.chipClass) + '">' + esc(p.type) + '</span> ' + esc(p.text)
+    ).join('&nbsp;&nbsp;') + '</span></div>').join(''));
 
   // 誕生日・新人
   setRows('people', d.people.map(x =>

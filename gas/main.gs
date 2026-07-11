@@ -47,7 +47,7 @@ function getData() {
     monthly: schedule.monthly,
     reminders: getReminders_(ss, today),
     teams: getTeams_(ss, today),
-    recruit: getRecruit_(ss, today),
+    recruit: getRecruit_(ss, today, Number(cfg['FL・DL募集 表示日数']) || 6),
     people: getPeople_(ss, today, Number(cfg['誕生日表示日数']) || 3),
     lost: getLost_(ss, cfg['忘れ物写真フォルダID']),
     ticker: getTicker_(ss, today),
@@ -183,17 +183,45 @@ function getTeams_(ss, today) {
   }).filter(x => x && x.text);
 }
 
-function getRecruit_(ss, today) {
-  return readRows_(ss, 'シフト・事務募集').map(r => {
-    const end = asDate_(r[3]);
-    if (end && end < today) return null;
-    const when = asDate_(r[0]);
-    return {
-      when: when ? dateLabel_(when) : String(r[0] || ''),
-      text: String(r[1] || ''),
-      left: r[2] !== '' && r[2] != null ? 'あと' + r[2] + '名' : '',
-    };
-  }).filter(x => x && x.text);
+// 区分ごとのチップ色クラス（CSS側の .chip.fl / .chip.dl / .chip.sun / .chip.staff / .chip.other に対応）
+const RECRUIT_CHIP_CLASS = { 'FL': 'fl', 'DL': 'dl', '日曜日': 'sun', '事務': 'staff' };
+
+// 「FL・DL募集」シート: 日付・区分は空欄なら直前の行の値を引き継ぐ（原稿の縦並びをそのまま転記しやすくするため）
+function getRecruit_(ss, today, limitDates) {
+  let lastDate = null, lastType = '';
+  const parsed = [];
+  readRows_(ss, 'FL・DL募集').forEach(r => {
+    const d = asDate_(r[0]) || lastDate;
+    const type = String(r[1] || '').trim() || lastType;
+    const content = String(r[2] || '').trim();
+    if (!d || !type || !content) return;
+    lastDate = d; lastType = type;
+    const count = r[3];
+    const need = (count !== '' && count != null) ? 'あと' + count + '人' : '';
+    parsed.push({ date: d, type: type, text: need ? content + ' ' + need : content });
+  });
+
+  const byDate = {};
+  parsed.forEach(p => {
+    if (p.date < today) return;
+    const key = p.date.getTime();
+    if (!byDate[key]) byDate[key] = { date: p.date, types: {} };
+    (byDate[key].types[p.type] = byDate[key].types[p.type] || []).push(p.text);
+  });
+
+  return Object.keys(byDate).map(Number).sort((a, b) => a - b)
+    .slice(0, limitDates || 6)
+    .map(key => {
+      const g = byDate[key];
+      return {
+        label: dateLabel_(g.date),
+        parts: Object.keys(g.types).map(type => ({
+          type: type,
+          chipClass: RECRUIT_CHIP_CLASS[type] || 'other',
+          text: g.types[type].join(' ／ '),
+        })),
+      };
+    });
 }
 
 function getPeople_(ss, today, windowDays) {
