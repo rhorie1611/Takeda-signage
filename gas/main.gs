@@ -190,9 +190,6 @@ function getNotices_(ss, today) {
   };
 }
 
-// 区分ごとのチップ色クラス（CSS側の .chip.sun / .chip.staff / .chip.other に対応。FL/DLは専用の表で表示するためチップ化しない）
-const RECRUIT_CHIP_CLASS = { '日曜日': 'sun', '事務': 'staff' };
-
 // 「FL・DL募集」シート: 日付・区分は空欄なら直前の行の値を引き継ぐ（原稿の縦並びをそのまま転記しやすくするため）
 // 表示件数の上限は設けない。過去日を除いて書いてあるものは全部載せる
 // 画面は上2/3がFL/DLの表、下1/3が日曜日・事務などその他の募集という構成
@@ -240,7 +237,6 @@ function getRecruit_(ss, today) {
         label: dateLabel_(g.date),
         parts: Object.keys(g.types).map(type => ({
           type: type,
-          chipClass: RECRUIT_CHIP_CLASS[type] || 'other',
           items: g.types[type],
         })),
       };

@@ -14,7 +14,7 @@
     --text:#1c2a3a; --muted:#64748b;
     --fl:#f59e0b; --fl-ink:#3d2800; --fl-soft:#fef3dd;
     --dl:#0e9f9e; --dl-ink:#ffffff; --dl-soft:#dcf5f4;
-    --info:#2f6fb2; --alert:#d64545; --fun:#c26bb5;
+    --info:#2f6fb2; --alert:#d64545;
     background:var(--ground); color:var(--text); }
   #screen *{ box-sizing:border-box; }
   .num{ font-variant-numeric:tabular-nums; }
@@ -22,15 +22,13 @@
   .chip{ display:inline-block; padding:1px 10px; border-radius:999px; font-size:16px; font-weight:800; letter-spacing:.06em; flex:none; }
   .chip.fl{ background:var(--fl); color:var(--fl-ink); }
   .chip.dl{ background:var(--dl); color:var(--dl-ink); }
-  .chip.sun{ background:var(--fun); color:#ffffff; }
-  .chip.staff{ background:var(--info); color:#ffffff; }
-  .chip.other{ background:var(--muted); color:#ffffff; }
+  .tag{ display:inline-block; font-weight:800; font-size:15px; color:var(--text); background:var(--soft);
+    border:1px solid var(--line); border-radius:6px; padding:2px 10px; flex:none; }
   .panel{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px 20px; overflow:hidden;
     box-shadow:0 1px 4px rgba(24,40,64,.06); }
   .sec-title{ font-size:22px; font-weight:800; letter-spacing:.03em; margin:0 0 10px; display:flex; align-items:center; gap:10px; }
   .sec-title::before{ content:""; width:8px; height:22px; border-radius:4px; background:var(--info); flex:none; }
   .sec-title.warn::before{ background:var(--alert); }
-  .sec-title.fun::before{ background:var(--fun); }
   .sec-title .range{ font-size:16px; color:var(--muted); font-weight:600; margin-left:auto; }
   .row{ display:flex; align-items:baseline; gap:12px; font-size:19px; line-height:1.4; }
   .row + .row{ margin-top:9px; }
@@ -66,7 +64,7 @@
   .recruit-bottom{ flex:none; max-height:220px; margin-top:16px; padding-top:14px; border-top:1px solid var(--line); min-height:0; overflow-y:auto; }
   .recruit-row{ align-items:flex-start; font-size:20px; gap:16px; }
   .recruit-row .datechip{ min-width:110px; font-size:17px; padding:3px 8px; margin-top:2px; }
-  .recruit-row .chip{ font-size:16px; padding:2px 11px; }
+  .recruit-row .tag{ font-size:15px; padding:2px 10px; }
   .recruit-parts{ display:flex; flex-wrap:wrap; align-items:center; gap:10px 20px; line-height:1.7; }
   .recruit-part{ display:inline-flex; align-items:center; gap:8px; }
 
@@ -83,6 +81,7 @@
   .notice-block.ov #notice-overall .row::before{ content:"・"; color:var(--info); font-weight:800; margin-right:2px; }
 
   .notice-panel .team-row{ display:block; }
+  .notice-panel .team-row + .team-row{ margin-top:20px; padding-top:16px; border-top:1px solid var(--line); }
   .team-row .team-name{ display:block; font-weight:800; color:var(--text); font-size:20px; margin-bottom:3px; }
 
   .head{ flex:none; height:76px; display:flex; align-items:center; justify-content:space-between;
@@ -193,7 +192,7 @@
 
       <div class="slide">
         <div class="panel full recruit-panel">
-          <h2 class="sec-title fun">事務募集 <span class="range">お手すきの方はぜひ</span></h2>
+          <h2 class="sec-title">事務募集 <span class="range">お手すきの方はぜひ</span></h2>
           <div class="recruit-top">
             <div class="recruit-col">
               <div class="recruit-col-title fl">FL募集</div>
@@ -288,7 +287,7 @@ function render(){
   setRows('recruit-staff', d.recruit.staff.map(g =>
     '<div class="row recruit-row"><span class="datechip num">' + esc(g.label) + '</span>' +
     '<span class="recruit-parts">' + g.parts.map(p =>
-      '<span class="recruit-part"><span class="chip ' + esc(p.chipClass) + '">' + esc(p.type) + '</span>' +
+      '<span class="recruit-part"><span class="tag">' + esc(p.type) + '</span>' +
       '<span>' + p.items.map(itemText).join(' ／ ') + '</span></span>'
     ).join('') + '</span></div>').join(''));
 
