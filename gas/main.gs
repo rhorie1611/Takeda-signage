@@ -46,7 +46,7 @@ function getData() {
     schedule: schedule,
     reminders: getReminders_(ss, today),
     notices: getNotices_(ss, today),
-    recruit: getRecruit_(ss, today, Number(cfg['FL・DL募集 表示日数']) || 6),
+    recruit: getRecruit_(ss, today),
     ticker: getTicker_(ss, today),
   };
 }
@@ -186,7 +186,8 @@ function getNotices_(ss, today) {
 const RECRUIT_CHIP_CLASS = { 'FL': 'fl', 'DL': 'dl', '日曜日': 'sun', '事務': 'staff' };
 
 // 「FL・DL募集」シート: 日付・区分は空欄なら直前の行の値を引き継ぐ（原稿の縦並びをそのまま転記しやすくするため）
-function getRecruit_(ss, today, limitDates) {
+// 表示件数の上限は設けない。過去日を除いて書いてあるものは全部載せる
+function getRecruit_(ss, today) {
   let lastDate = null, lastType = '';
   const parsed = [];
   readRows_(ss, 'FL・DL募集').forEach(r => {
@@ -209,7 +210,6 @@ function getRecruit_(ss, today, limitDates) {
   });
 
   return Object.keys(byDate).map(Number).sort((a, b) => a - b)
-    .slice(0, limitDates || 6)
     .map(key => {
       const g = byDate[key];
       return {

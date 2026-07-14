@@ -74,8 +74,9 @@
 
   .main{ flex:1; display:grid; grid-template-columns:1fr 2fr; gap:16px; padding:16px 30px; min-height:0; }
 
-  .fd-panel{ display:flex; flex-direction:column; min-height:0; }
-  .fd-wrap{ flex:1; display:grid; grid-template-columns:1fr 1.3fr; gap:14px; min-height:0; }
+  .fd-panel{ display:flex; flex-direction:column; min-height:0; gap:14px; }
+  .fd-wrap{ flex:none; display:grid; grid-template-columns:1fr 1.3fr; gap:14px; }
+  .fd-reminders{ flex:1; min-height:0; overflow-y:auto; padding-top:14px; border-top:1px solid var(--line); }
   .fd-col h3{ margin:0 0 8px; font-size:16px; font-weight:800; display:flex; align-items:center; gap:6px; color:var(--muted); letter-spacing:.08em; }
   .timeline{ display:flex; flex-direction:column; gap:6px; }
   .tl-item{ display:flex; flex-direction:column; gap:1px; padding:6px 11px; border-radius:8px; border:1px solid var(--line); background:var(--soft); }
@@ -94,8 +95,7 @@
   .slide .cols{ flex:1; display:grid; grid-template-columns:1.3fr 1fr; gap:16px; min-height:0; }
   .slide .colstack{ display:flex; flex-direction:column; gap:16px; min-height:0; }
   .slide .colstack .panel{ min-height:0; overflow-y:auto; }
-  .slide .colstack .panel.reminders-panel{ flex:1; }
-  .slide .colstack .panel.notice-panel{ flex:1.6; }
+  .slide .colstack .panel.notice-panel{ flex:1; }
   .slide .panel.full{ flex:1; min-height:0; overflow-y:auto; }
   .slide-dots{ position:absolute; right:6px; bottom:6px; display:flex; gap:9px; }
   .slide-dots i{ width:12px; height:12px; border-radius:50%; background:var(--line); }
@@ -136,20 +136,20 @@
           <div class="timeline" id="tl-fl"></div>
         </div>
       </div>
+      <div class="fd-reminders">
+        <h2 class="sec-title warn">提出リマインド</h2>
+        <div id="reminders"></div>
+      </div>
     </div>
 
     <div class="slides">
       <div class="slide active">
         <div class="cols">
           <div class="panel full">
-            <h2 class="sec-title">予定 <span class="range" id="schedule-range"></span></h2>
+            <h2 class="sec-title">校舎の予定</h2>
             <div id="schedule"></div>
           </div>
           <div class="colstack">
-            <div class="panel reminders-panel">
-              <h2 class="sec-title warn">提出リマインド</h2>
-              <div id="reminders"></div>
-            </div>
             <div class="panel notice-panel">
               <h2 class="sec-title">校舎からの連絡</h2>
               <div class="notice-block">
@@ -204,7 +204,6 @@ function setRows(id, html){
   document.getElementById(id).innerHTML = html || '<div class="empty">（今日はありません）</div>';
 }
 const WD = ['日','月','火','水','木','金','土'];
-function label(d){ return (d.getMonth()+1) + '/' + d.getDate() + '(' + WD[d.getDay()] + ')'; }
 
 /* ---------- 描画 ---------- */
 function render(){
@@ -223,12 +222,7 @@ function render(){
   document.getElementById('tl-dl').innerHTML = tl(d.dl) || '<div class="empty">予定なし</div>';
   document.getElementById('tl-fl').innerHTML = tl(d.fl) || '<div class="empty">予定なし</div>';
 
-  // 予定（直近1週間を強調、それ以降は薄く。境目に区切り線を1本だけ入れる）
-  const now = new Date();
-  const recentEnd = new Date(now); recentEnd.setDate(recentEnd.getDate() + 6);
-  document.getElementById('schedule-range').textContent =
-    '直近1週間を強調表示（〜' + label(recentEnd) + '）';
-
+  // 予定（直近1週間を強調、それ以降は薄く。境目に区切り線を1本だけ入れる。説明文はサイネージには出さない）
   let schedHtml = '', dividerShown = false;
   d.schedule.forEach(x => {
     if (!x.recent && !dividerShown) { schedHtml += '<div class="sched-divider">来週以降</div>'; dividerShown = true; }
