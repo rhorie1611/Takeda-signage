@@ -40,17 +40,17 @@
   .muted{ color:var(--muted); }
   .empty{ color:var(--muted); font-size:17px; }
 
-  #schedule .row{ font-size:23px; }
-  #schedule .datechip{ font-size:19px; min-width:112px; }
+  #schedule .row{ font-size:26px; }
+  #schedule .datechip{ font-size:21px; min-width:120px; }
   .sched-row.past{ opacity:.45; }
   .sched-row.recent{ font-weight:800; }
   .sched-row.recent .datechip{ background:var(--info); border-color:var(--info); color:#ffffff; }
 
-  .fd-reminders .row{ font-size:22px; }
-  .fd-reminders .datechip{ font-size:18px; }
+  .fd-reminders .row{ font-size:25px; }
+  .fd-reminders .datechip{ font-size:20px; }
 
   .recruit-panel{ display:flex; flex-direction:column; min-height:0; }
-  .recruit-top{ flex:2; display:grid; grid-template-columns:1fr 1fr; gap:28px; min-height:0; }
+  .recruit-top{ flex:1; display:grid; grid-template-columns:1fr 1fr; gap:28px; min-height:0; }
   .recruit-col{ min-height:0; overflow-y:auto; }
   .recruit-col-title{ margin-bottom:8px; }
   .fd-table{ display:flex; flex-direction:column; }
@@ -59,7 +59,7 @@
   .fd-table .fd-row.head{ font-size:14px; font-weight:700; color:var(--muted); letter-spacing:.06em; border-bottom:2px solid var(--line); padding-bottom:7px; }
   .fd-table .fd-date{ color:var(--muted); font-weight:700; }
 
-  .recruit-bottom{ flex:1; margin-top:16px; padding-top:14px; border-top:1px solid var(--line); min-height:0; overflow-y:auto; }
+  .recruit-bottom{ flex:none; max-height:220px; margin-top:16px; padding-top:14px; border-top:1px solid var(--line); min-height:0; overflow-y:auto; }
   .recruit-row{ align-items:flex-start; font-size:20px; gap:16px; }
   .recruit-row .datechip{ min-width:110px; font-size:17px; padding:3px 8px; margin-top:2px; }
   .recruit-row .chip{ font-size:16px; padding:2px 11px; }
@@ -68,6 +68,7 @@
   .need{ color:var(--info); font-weight:800; }
 
   .notice-panel{ display:flex; flex-direction:column; min-height:0; }
+  .notice-panel .row{ font-size:22px; }
   .notice-block + .notice-block{ margin-top:18px; padding-top:16px; border-top:1px solid var(--line); }
   .notice-block-title{ font-size:15px; font-weight:800; letter-spacing:.06em; margin-bottom:10px;
     display:flex; align-items:center; gap:8px; }
@@ -79,7 +80,7 @@
   .notice-block.ov #notice-overall .row::before{ content:"・"; color:var(--info); font-weight:800; margin-right:2px; }
 
   .team-row{ display:grid; grid-template-columns:130px 1fr; align-items:baseline; gap:14px; }
-  .team-row .team-name{ font-weight:800; color:var(--fun); font-size:17px; }
+  .team-row .team-name{ font-weight:800; color:var(--fun); font-size:19px; }
 
   .head{ flex:none; height:76px; display:flex; align-items:center; justify-content:space-between;
     padding:0 30px; background:#ffffff; border-bottom:2px solid var(--line); }
@@ -189,7 +190,7 @@
 
       <div class="slide">
         <div class="panel full recruit-panel">
-          <h2 class="sec-title fun">FL・DL募集 <span class="range">お手すきの方はぜひ</span></h2>
+          <h2 class="sec-title fun">事務募集 <span class="range">お手すきの方はぜひ</span></h2>
           <div class="recruit-top">
             <div class="recruit-col">
               <div class="recruit-col-title"><span class="chip fl">FL</span></div>
@@ -201,7 +202,7 @@
             </div>
           </div>
           <div class="recruit-bottom">
-            <div class="notice-block-title">事務・その他の募集</div>
+            <div class="notice-block-title">その他の募集</div>
             <div id="recruit-staff"></div>
           </div>
         </div>
