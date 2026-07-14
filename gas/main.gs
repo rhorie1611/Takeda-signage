@@ -17,8 +17,8 @@ function doGet() {
     // シート未設定などでも画面自体は表示する（次の自動更新で復帰）
     data = {
       config: { slideSeconds: 20, refreshMinutes: 5 },
-      countdown: null, fl: [], dl: [], weekly: [], monthly: [],
-      reminders: [], notices: { overall: [], teams: [] }, recruit: [], people: [], lost: [],
+      countdown: null, fl: [], dl: [], schedule: [],
+      reminders: [], notices: { overall: [], teams: [] }, recruit: [],
       ticker: [{ tag: 'エラー', text: 'データ取得に失敗しました: ' + err }],
     };
   }
@@ -43,13 +43,10 @@ function getData() {
     countdown: getCountdown_(ss, today),
     fl: getLeaders_(cfg['FLカレンダーID'], true),
     dl: getLeaders_(cfg['DLカレンダーID'], false),
-    weekly: schedule.weekly,
-    monthly: schedule.monthly,
+    schedule: schedule,
     reminders: getReminders_(ss, today),
     notices: getNotices_(ss, today),
     recruit: getRecruit_(ss, today, Number(cfg['FL・DL募集 表示日数']) || 6),
-    people: getPeople_(ss, today, Number(cfg['誕生日表示日数']) || 3),
-    lost: getLost_(ss, cfg['忘れ物写真フォルダID']),
     ticker: getTicker_(ss, today),
   };
 }
@@ -111,14 +108,18 @@ function parseName_(title, requireFlTag) {
   return raw.replace(/【[^】]*】/g, '').trim();
 }
 
-/* ================= 予定（週・月 自動振り分け） ================= */
+/* ================= 予定（週・月を1本化。直近1週間は強調、それ以降は薄く） ================= */
 
 function getSchedule_(ss, today) {
-  // 今週 = 今日を含む月曜〜日曜
-  const monday = new Date(today);
-  monday.setDate(monday.getDate() - ((today.getDay() + 6) % 7));
-  const sunday = new Date(monday);
-  sunday.setDate(sunday.getDate() + 6);
+  // 直近7日間（今日を含む）を強調表示の対象にする
+  const recentEnd = new Date(today);
+  recentEnd.setDate(recentEnd.getDate() + 6);
+
+  // 表示範囲の終わり = 今月末 or 今日から20日後、遅い方（月末間際でも近い将来が見えるように）
+  const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+  const minEnd = new Date(today);
+  minEnd.setDate(minEnd.getDate() + 20);
+  const rangeEnd = endOfMonth > minEnd ? endOfMonth : minEnd;
 
   const pool = [];
 
@@ -138,26 +139,18 @@ function getSchedule_(ss, today) {
     pool.push({ date: d, end: null, text: String(r[2]), emph: '' });
   });
 
-  const weekly = [], monthly = [];
-  pool.forEach(ev => {
-    const last = ev.end || ev.date;
-    if (last < today) return; // 終わった予定
-    if (ev.date <= sunday && last >= monday) {
-      weekly.push(ev);
-    } else if (ev.date.getFullYear() === today.getFullYear() && ev.date.getMonth() === today.getMonth()) {
-      monthly.push(ev);
-    }
-  });
-  const toRow = ev => ({
-    label: dateLabel_(ev.date) + (ev.end ? '〜' + fmt_(ev.end, 'M/d') : ''),
-    text: ev.text,
-    emph: ev.emph === '締切',
-  });
-  const bySort = (a, b) => a.date - b.date;
-  return {
-    weekly: weekly.sort(bySort).map(toRow),
-    monthly: monthly.sort(bySort).map(toRow),
-  };
+  return pool
+    .filter(ev => {
+      const last = ev.end || ev.date;
+      return last >= today && ev.date <= rangeEnd; // 終わった予定は除外、範囲外の遠い予定も除外
+    })
+    .sort((a, b) => a.date - b.date)
+    .map(ev => ({
+      label: dateLabel_(ev.date) + (ev.end ? '〜' + fmt_(ev.end, 'M/d') : ''),
+      text: ev.text,
+      emph: ev.emph === '締切',
+      recent: ev.date <= recentEnd,
+    }));
 }
 
 /* ================= 各コーナー ================= */
@@ -284,12 +277,22 @@ function getLost_(ss, folderId) {
   return items;
 }
 
+// テロップには「テロップ」シートに加えて、優先度が低めのコーナー（誕生日・新人紹介・忘れもの）と
+// 「今日は何の日」もまとめて流す（専用パネルを持たせるほどではないが、消したくはない情報のため）。
 function getTicker_(ss, today) {
   const items = readRows_(ss, 'テロップ').map(r => {
     const end = asDate_(r[1]);
     if (end && end < today) return null;
     return r[0] ? { tag: 'お知らせ', text: String(r[0]) } : null;
   }).filter(Boolean);
+
+  getPeople_(ss, today, Number(readConfig_(ss)['誕生日表示日数']) || 3).forEach(p => {
+    items.push({ tag: p.tag === '新人' ? '新人紹介' : '誕生日', text: p.text });
+  });
+
+  getLost_(ss).forEach(l => {
+    items.push({ tag: '忘れもの', text: l.item + (l.place ? '（' + l.place + '）' : '') + ' → 受付で保管しています' });
+  });
 
   const ann = getAnniversary_(today);
   if (ann) {
