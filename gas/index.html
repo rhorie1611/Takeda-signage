@@ -52,7 +52,11 @@
   .recruit-panel{ display:flex; flex-direction:column; min-height:0; }
   .recruit-top{ flex:1; display:grid; grid-template-columns:1fr 1fr; gap:28px; min-height:0; }
   .recruit-col{ min-height:0; overflow-y:auto; }
-  .recruit-col-title{ margin-bottom:8px; }
+  .recruit-col-title{ display:flex; align-items:center; gap:9px; font-size:19px; font-weight:800; color:var(--text);
+    padding-bottom:9px; margin-bottom:0; border-bottom:2px solid var(--line); }
+  .recruit-col-title::before{ content:""; width:10px; height:10px; border-radius:3px; flex:none; }
+  .recruit-col-title.fl::before{ background:var(--fl); }
+  .recruit-col-title.dl::before{ background:var(--dl); }
   .fd-table{ display:flex; flex-direction:column; }
   .fd-table .fd-row{ display:grid; grid-template-columns:110px 1fr; gap:12px; padding:9px 4px; border-bottom:1px solid var(--line); font-size:21px; }
   .fd-table .fd-row:last-child{ border-bottom:none; }
@@ -65,7 +69,6 @@
   .recruit-row .chip{ font-size:16px; padding:2px 11px; }
   .recruit-parts{ display:flex; flex-wrap:wrap; align-items:center; gap:10px 20px; line-height:1.7; }
   .recruit-part{ display:inline-flex; align-items:center; gap:8px; }
-  .need{ color:var(--info); font-weight:800; }
 
   .notice-panel{ display:flex; flex-direction:column; min-height:0; }
   .notice-panel .row{ font-size:26px; }
@@ -75,12 +78,12 @@
   .notice-block-title::before{ content:""; width:8px; height:8px; border-radius:2px; flex:none; }
   .notice-block.ov .notice-block-title{ color:var(--info); }
   .notice-block.ov .notice-block-title::before{ background:var(--info); }
-  .notice-block.tm .notice-block-title{ color:var(--fun); }
-  .notice-block.tm .notice-block-title::before{ background:var(--fun); }
+  .notice-block.tm .notice-block-title{ color:var(--muted); }
+  .notice-block.tm .notice-block-title::before{ background:var(--muted); }
   .notice-block.ov #notice-overall .row::before{ content:"・"; color:var(--info); font-weight:800; margin-right:2px; }
 
   .notice-panel .team-row{ display:block; }
-  .team-row .team-name{ display:block; font-weight:800; color:var(--fun); font-size:20px; margin-bottom:3px; }
+  .team-row .team-name{ display:block; font-weight:800; color:var(--text); font-size:20px; margin-bottom:3px; }
 
   .head{ flex:none; height:76px; display:flex; align-items:center; justify-content:space-between;
     padding:0 30px; background:#ffffff; border-bottom:2px solid var(--line); }
@@ -193,11 +196,11 @@
           <h2 class="sec-title fun">事務募集 <span class="range">お手すきの方はぜひ</span></h2>
           <div class="recruit-top">
             <div class="recruit-col">
-              <div class="recruit-col-title"><span class="chip fl">FL</span></div>
+              <div class="recruit-col-title fl">FL募集</div>
               <div class="fd-table" id="recruit-fl"></div>
             </div>
             <div class="recruit-col">
-              <div class="recruit-col-title"><span class="chip dl">DL</span></div>
+              <div class="recruit-col-title dl">DL募集</div>
               <div class="fd-table" id="recruit-dl"></div>
             </div>
           </div>
@@ -276,7 +279,7 @@ function render(){
     '<div class="row team-row"><span class="team-name">' + esc(x.team) + '</span><span>' + esc(x.text) + '</span></div>').join(''));
 
   // FL・DL募集: 上段はFL/DLをそれぞれ軽い表で、下段は日曜日・事務などその他の募集
-  const itemText = it => esc(it.content) + (it.count != null ? ' <b class="need">' + esc(it.count) + '人</b>' : '');
+  const itemText = it => esc(it.content);
   const fdTable = list => '<div class="fd-row head"><span>日付</span><span>時間帯</span></div>' +
     list.map(x => '<div class="fd-row"><span class="fd-date num">' + esc(x.label) + '</span><span>' + itemText(x) + '</span></div>').join('');
   document.getElementById('recruit-fl').innerHTML = d.recruit.fl.length ? fdTable(d.recruit.fl) : '<div class="empty">募集なし</div>';
