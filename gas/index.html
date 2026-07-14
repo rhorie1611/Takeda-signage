@@ -68,11 +68,14 @@
   .recruit-parts{ display:flex; flex-wrap:wrap; align-items:center; gap:10px 20px; line-height:1.7; }
   .recruit-part{ display:inline-flex; align-items:center; gap:8px; }
 
-  .notice-panel{ display:flex; flex-direction:column; min-height:0; }
-  .notice-panel .row{ font-size:26px; }
-  .notice-block + .notice-block{ margin-top:18px; padding-top:16px; border-top:1px solid var(--line); }
+  /* .notice-panel の font-size は文字量に応じてJSが縮小する（既定26px、最小14pxまで）。
+     配下は em 指定にして、この font-size からまとめて比率で縮む。 */
+  .notice-panel{ display:flex; flex-direction:column; min-height:0; font-size:26px; }
+  .notice-panel .row{ font-size:1em; }
+  .notice-block + .notice-block{ margin-top:.7em; padding-top:.6em; border-top:1px solid var(--line); }
   .notice-block-title{ font-size:15px; font-weight:800; letter-spacing:.06em; margin-bottom:10px;
     display:flex; align-items:center; gap:8px; }
+  .notice-panel .notice-block-title{ font-size:.58em; margin-bottom:.4em; }
   .notice-block-title::before{ content:""; width:8px; height:8px; border-radius:2px; flex:none; }
   .notice-block.ov .notice-block-title{ color:var(--info); }
   .notice-block.ov .notice-block-title::before{ background:var(--info); }
@@ -81,8 +84,8 @@
   .notice-block.ov #notice-overall .row::before{ content:"・"; color:var(--info); font-weight:800; margin-right:2px; }
 
   .notice-panel .team-row{ display:block; }
-  .notice-panel .team-row + .team-row{ margin-top:20px; padding-top:16px; border-top:1px solid var(--line); }
-  .team-row .team-name{ display:block; font-weight:800; color:var(--text); font-size:20px; margin-bottom:3px; }
+  .notice-panel .team-row + .team-row{ margin-top:.77em; padding-top:.62em; border-top:1px solid var(--line); }
+  .team-row .team-name{ display:block; font-weight:800; color:var(--text); font-size:.77em; margin-bottom:.15em; }
 
   .head{ flex:none; height:76px; display:flex; align-items:center; justify-content:space-between;
     padding:0 30px; background:#ffffff; border-bottom:2px solid var(--line); }
@@ -238,6 +241,10 @@ function esc(s){
   return String(s).replace(/[&<>"']/g, c =>
     ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
+// スプレッドシートのセル内改行(Alt+Enter)を<br>として反映する
+function escNl(s){
+  return esc(s).replace(/\r\n|\r|\n/g, '<br>');
+}
 function setRows(id, html, emptyText){
   document.getElementById(id).innerHTML = html || '<div class="empty">（' + (emptyText || '今日はありません') + '）</div>';
 }
@@ -263,19 +270,19 @@ function render(){
   // 予定（過ぎたもの=グレー、直近1週間=強調、それ以外=通常）
   setRows('schedule', d.schedule.map(x =>
     '<div class="row sched-row ' + x.status + '">' +
-    '<span class="datechip num">' + esc(x.label) + '</span><span>' + esc(x.text) +
+    '<span class="datechip num">' + esc(x.label) + '</span><span>' + escNl(x.text) +
     (x.emph ? ' <b class="deadline">締切</b>' : '') + '</span></div>').join(''));
 
   // リマインド
   setRows('reminders', d.reminders.map(x =>
     '<div class="row"><span>' + (x.target ? '<span class="datechip">' + esc(x.target) + '</span> ' : '') +
-    esc(x.text) + '</span><span class="deadline num" style="margin-left:auto;">' + esc(x.due) + '</span></div>').join(''));
+    escNl(x.text) + '</span><span class="deadline num" style="margin-left:auto;">' + esc(x.due) + '</span></div>').join(''));
 
   // 校舎からの連絡（全体・各班）
   setRows('notice-overall', d.notices.overall.map(text =>
-    '<div class="row"><span>' + esc(text) + '</span></div>').join(''));
+    '<div class="row"><span>' + escNl(text) + '</span></div>').join(''));
   setRows('notice-teams', d.notices.teams.map(x =>
-    '<div class="row team-row"><span class="team-name">' + esc(x.team) + '</span><span>' + esc(x.text) + '</span></div>').join(''));
+    '<div class="row team-row"><span class="team-name">' + esc(x.team) + '</span><span>' + escNl(x.text) + '</span></div>').join(''));
 
   // FL・DL募集: 上段はFL/DLをそれぞれ軽い表で、下段は日曜日・事務などその他の募集
   const itemText = it => esc(it.content);
@@ -291,7 +298,21 @@ function render(){
       '<span>' + p.items.map(itemText).join(' ／ ') + '</span></span>'
     ).join('') + '</span></div>').join(''), 'ありません');
 
+  fitNoticePanel_();
   tickClock();
+}
+
+// 「校舎からの連絡」パネルは、内容が入りきらない時だけ文字を少しずつ縮小して収める
+function fitNoticePanel_(){
+  const el = document.querySelector('.notice-panel');
+  if(!el) return;
+  const max = 26, min = 14;
+  let size = max;
+  el.style.fontSize = size + 'px';
+  while(size > min && el.scrollHeight > el.clientHeight + 1){
+    size -= 1;
+    el.style.fontSize = size + 'px';
+  }
 }
 
 /* ---------- 時計・NOW判定 ---------- */
