@@ -40,8 +40,8 @@
   .muted{ color:var(--muted); }
   .empty{ color:var(--muted); font-size:17px; }
 
-  #schedule .row{ font-size:26px; }
-  #schedule .datechip{ font-size:21px; min-width:120px; }
+  #schedule .row{ font-size:22px; }
+  #schedule .datechip{ font-size:18px; }
   .sched-row.past{ opacity:.45; }
   .sched-row.recent{ font-weight:800; }
   .sched-row.recent .datechip{ background:var(--info); border-color:var(--info); color:#ffffff; }
@@ -68,7 +68,7 @@
   .need{ color:var(--info); font-weight:800; }
 
   .notice-panel{ display:flex; flex-direction:column; min-height:0; }
-  .notice-panel .row{ font-size:22px; }
+  .notice-panel .row{ font-size:26px; }
   .notice-block + .notice-block{ margin-top:18px; padding-top:16px; border-top:1px solid var(--line); }
   .notice-block-title{ font-size:15px; font-weight:800; letter-spacing:.06em; margin-bottom:10px;
     display:flex; align-items:center; gap:8px; }
@@ -79,8 +79,8 @@
   .notice-block.tm .notice-block-title::before{ background:var(--fun); }
   .notice-block.ov #notice-overall .row::before{ content:"・"; color:var(--info); font-weight:800; margin-right:2px; }
 
-  .team-row{ display:grid; grid-template-columns:130px 1fr; align-items:baseline; gap:14px; }
-  .team-row .team-name{ font-weight:800; color:var(--fun); font-size:19px; }
+  .notice-panel .team-row{ display:block; }
+  .team-row .team-name{ display:block; font-weight:800; color:var(--fun); font-size:20px; margin-bottom:3px; }
 
   .head{ flex:none; height:76px; display:flex; align-items:center; justify-content:space-between;
     padding:0 30px; background:#ffffff; border-bottom:2px solid var(--line); }
@@ -118,7 +118,7 @@
   .slide .cols{ flex:1; display:grid; grid-template-columns:1.3fr 1fr; gap:16px; min-height:0; }
   .slide .colstack{ display:flex; flex-direction:column; gap:16px; min-height:0; }
   .slide .colstack .panel{ min-height:0; overflow-y:auto; }
-  .slide .colstack .panel.notice-panel{ flex:1; }
+  .slide .colstack .panel.side-panel{ flex:1; }
   .slide .panel.full{ flex:1; min-height:0; overflow-y:auto; }
   .slide-dots{ position:absolute; right:6px; bottom:6px; display:flex; gap:9px; }
   .slide-dots i{ width:12px; height:12px; border-radius:50%; background:var(--line); }
@@ -168,21 +168,21 @@
     <div class="slides">
       <div class="slide active">
         <div class="cols">
-          <div class="panel full">
-            <h2 class="sec-title">校舎の予定</h2>
-            <div id="schedule"></div>
+          <div class="panel full notice-panel">
+            <h2 class="sec-title">校舎からの連絡</h2>
+            <div class="notice-block ov">
+              <div class="notice-block-title">校舎全体</div>
+              <div id="notice-overall"></div>
+            </div>
+            <div class="notice-block tm">
+              <div class="notice-block-title">各班</div>
+              <div id="notice-teams"></div>
+            </div>
           </div>
           <div class="colstack">
-            <div class="panel notice-panel">
-              <h2 class="sec-title">校舎からの連絡</h2>
-              <div class="notice-block ov">
-                <div class="notice-block-title">校舎全体</div>
-                <div id="notice-overall"></div>
-              </div>
-              <div class="notice-block tm">
-                <div class="notice-block-title">各班</div>
-                <div id="notice-teams"></div>
-              </div>
+            <div class="panel side-panel">
+              <h2 class="sec-title">校舎の予定</h2>
+              <div id="schedule"></div>
             </div>
           </div>
         </div>
@@ -277,7 +277,7 @@ function render(){
 
   // FL・DL募集: 上段はFL/DLをそれぞれ軽い表で、下段は日曜日・事務などその他の募集
   const itemText = it => esc(it.content) + (it.count != null ? ' <b class="need">' + esc(it.count) + '人</b>' : '');
-  const fdTable = list => '<div class="fd-row head"><span>日付</span><span>時間帯・人数</span></div>' +
+  const fdTable = list => '<div class="fd-row head"><span>日付</span><span>時間帯</span></div>' +
     list.map(x => '<div class="fd-row"><span class="fd-date num">' + esc(x.label) + '</span><span>' + itemText(x) + '</span></div>').join('');
   document.getElementById('recruit-fl').innerHTML = d.recruit.fl.length ? fdTable(d.recruit.fl) : '<div class="empty">募集なし</div>';
   document.getElementById('recruit-dl').innerHTML = d.recruit.dl.length ? fdTable(d.recruit.dl) : '<div class="empty">募集なし</div>';

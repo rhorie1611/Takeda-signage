@@ -210,10 +210,21 @@ function getRecruit_(ss, today) {
   });
 
   const future = parsed.filter(p => p.date >= today).sort((a, b) => a.date - b.date);
-  const toRow = p => ({ label: dateLabel_(p.date), content: p.content, count: p.count });
 
-  const fl = future.filter(p => p.type === 'FL').map(toRow);
-  const dl = future.filter(p => p.type === 'DL').map(toRow);
+  // FL/DLは同じ日付を1行にまとめ、人数は表示しない（時間帯だけを列挙する）
+  const groupByDate = list => {
+    const byDate = {};
+    list.forEach(p => {
+      const key = p.date.getTime();
+      if (!byDate[key]) byDate[key] = { date: p.date, contents: [] };
+      byDate[key].contents.push(p.content);
+    });
+    return Object.keys(byDate).map(Number).sort((a, b) => a - b)
+      .map(key => ({ label: dateLabel_(byDate[key].date), content: byDate[key].contents.join(', ') }));
+  };
+
+  const fl = groupByDate(future.filter(p => p.type === 'FL'));
+  const dl = groupByDate(future.filter(p => p.type === 'DL'));
 
   const byDate = {};
   future.filter(p => p.type !== 'FL' && p.type !== 'DL').forEach(p => {
