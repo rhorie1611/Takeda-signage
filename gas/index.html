@@ -40,10 +40,9 @@
   .muted{ color:var(--muted); }
   .empty{ color:var(--muted); font-size:17px; }
 
-  .sched-row.dim{ opacity:.5; }
-  .sched-divider{ display:flex; align-items:center; gap:10px; color:var(--muted); font-size:14px; font-weight:700;
-    letter-spacing:.08em; margin:12px 0 8px; }
-  .sched-divider::before, .sched-divider::after{ content:""; flex:1; height:1px; background:var(--line); }
+  .sched-row.past{ opacity:.45; }
+  .sched-row.recent{ font-weight:800; }
+  .sched-row.recent .datechip{ background:var(--info); border-color:var(--info); color:#ffffff; }
 
   .recruit-panel{ display:flex; flex-direction:column; }
   .recruit-panel #recruit{ flex:1; display:flex; flex-direction:column; justify-content:center; gap:22px; }
@@ -54,10 +53,14 @@
   .recruit-part{ display:inline-flex; align-items:center; gap:9px; }
   .need{ color:var(--info); font-weight:800; }
 
-  .notice-panel{ display:flex; flex-direction:column; min-height:0; }
-  .notice-block + .notice-block{ margin-top:14px; padding-top:14px; border-top:1px solid var(--line); }
-  .notice-block-title{ font-size:14px; font-weight:800; letter-spacing:.08em; color:var(--muted); margin-bottom:6px; }
-  .notice-overall .row::before{ content:"・"; color:var(--info); font-weight:800; margin-right:2px; }
+  .notice-panel{ display:flex; flex-direction:column; gap:14px; min-height:0; }
+  .notice-block{ background:var(--soft); border:1px solid var(--line); border-radius:10px; padding:12px 16px; }
+  .notice-block.ov{ border-left:5px solid var(--info); }
+  .notice-block.tm{ border-left:5px solid var(--fun); }
+  .notice-block-title{ font-size:14px; font-weight:800; letter-spacing:.08em; margin-bottom:8px; }
+  .notice-block.ov .notice-block-title{ color:var(--info); }
+  .notice-block.tm .notice-block-title{ color:var(--fun); }
+  .notice-block.ov #notice-overall .row::before{ content:"・"; color:var(--info); font-weight:800; margin-right:2px; }
 
   .head{ flex:none; height:76px; display:flex; align-items:center; justify-content:space-between;
     padding:0 30px; background:#ffffff; border-bottom:2px solid var(--line); }
@@ -152,11 +155,11 @@
           <div class="colstack">
             <div class="panel notice-panel">
               <h2 class="sec-title">校舎からの連絡</h2>
-              <div class="notice-block">
+              <div class="notice-block ov">
                 <div class="notice-block-title">校舎全体</div>
                 <div id="notice-overall"></div>
               </div>
-              <div class="notice-block">
+              <div class="notice-block tm">
                 <div class="notice-block-title">各班</div>
                 <div id="notice-teams"></div>
               </div>
@@ -222,15 +225,11 @@ function render(){
   document.getElementById('tl-dl').innerHTML = tl(d.dl) || '<div class="empty">予定なし</div>';
   document.getElementById('tl-fl').innerHTML = tl(d.fl) || '<div class="empty">予定なし</div>';
 
-  // 予定（直近1週間を強調、それ以降は薄く。境目に区切り線を1本だけ入れる。説明文はサイネージには出さない）
-  let schedHtml = '', dividerShown = false;
-  d.schedule.forEach(x => {
-    if (!x.recent && !dividerShown) { schedHtml += '<div class="sched-divider">来週以降</div>'; dividerShown = true; }
-    schedHtml += '<div class="row sched-row' + (x.recent ? '' : ' dim') + '">' +
-      '<span class="datechip num">' + esc(x.label) + '</span><span>' + esc(x.text) +
-      (x.emph ? ' <b class="deadline">締切</b>' : '') + '</span></div>';
-  });
-  setRows('schedule', schedHtml);
+  // 予定（過ぎたもの=グレー、直近1週間=強調、それ以外=通常）
+  setRows('schedule', d.schedule.map(x =>
+    '<div class="row sched-row ' + x.status + '">' +
+    '<span class="datechip num">' + esc(x.label) + '</span><span>' + esc(x.text) +
+    (x.emph ? ' <b class="deadline">締切</b>' : '') + '</span></div>').join(''));
 
   // リマインド
   setRows('reminders', d.reminders.map(x =>

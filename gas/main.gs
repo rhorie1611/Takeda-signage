@@ -115,6 +115,10 @@ function getSchedule_(ss, today) {
   const recentEnd = new Date(today);
   recentEnd.setDate(recentEnd.getDate() + 6);
 
+  // 過ぎた予定も直近7日分はグレーで残す（それより前は今まで通り表示から外す）
+  const pastStart = new Date(today);
+  pastStart.setDate(pastStart.getDate() - 6);
+
   // 表示範囲の終わり = 今月末 or 今日から20日後、遅い方（月末間際でも近い将来が見えるように）
   const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
   const minEnd = new Date(today);
@@ -142,15 +146,19 @@ function getSchedule_(ss, today) {
   return pool
     .filter(ev => {
       const last = ev.end || ev.date;
-      return last >= today && ev.date <= rangeEnd; // 終わった予定は除外、範囲外の遠い予定も除外
+      return last >= pastStart && ev.date <= rangeEnd; // 1週間より前の過去、範囲外の遠い未来は除外
     })
     .sort((a, b) => a.date - b.date)
-    .map(ev => ({
-      label: dateLabel_(ev.date) + (ev.end ? '〜' + fmt_(ev.end, 'M/d') : ''),
-      text: ev.text,
-      emph: ev.emph === '締切',
-      recent: ev.date <= recentEnd,
-    }));
+    .map(ev => {
+      const last = ev.end || ev.date;
+      const status = last < today ? 'past' : (ev.date <= recentEnd ? 'recent' : 'normal');
+      return {
+        label: dateLabel_(ev.date) + (ev.end ? '〜' + fmt_(ev.end, 'M/d') : ''),
+        text: ev.text,
+        emph: ev.emph === '締切',
+        status: status,
+      };
+    });
 }
 
 /* ================= 各コーナー ================= */
