@@ -26,10 +26,10 @@
     border:1px solid var(--line); border-radius:6px; padding:2px 10px; flex:none; }
   .panel{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px 20px; overflow:hidden;
     box-shadow:0 1px 4px rgba(24,40,64,.06); }
-  .sec-title{ font-size:22px; font-weight:800; letter-spacing:.03em; margin:0 0 10px; display:flex; align-items:center; gap:10px; }
-  .sec-title::before{ content:""; width:8px; height:22px; border-radius:4px; background:var(--info); flex:none; }
+  .sec-title{ font-size:26px; font-weight:800; letter-spacing:.03em; margin:0 0 10px; display:flex; align-items:center; gap:10px; }
+  .sec-title::before{ content:""; width:9px; height:26px; border-radius:4px; background:var(--info); flex:none; }
   .sec-title.warn::before{ background:var(--alert); }
-  .sec-title .range{ font-size:16px; color:var(--muted); font-weight:600; margin-left:auto; }
+  .sec-title .range{ font-size:17px; color:var(--muted); font-weight:600; margin-left:auto; }
   .row{ display:flex; align-items:baseline; gap:12px; font-size:19px; line-height:1.4; }
   .row + .row{ margin-top:9px; }
   .datechip{ flex:none; min-width:98px; text-align:center; background:var(--soft); border:1px solid var(--line);
@@ -238,8 +238,8 @@ function esc(s){
   return String(s).replace(/[&<>"']/g, c =>
     ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
-function setRows(id, html){
-  document.getElementById(id).innerHTML = html || '<div class="empty">（今日はありません）</div>';
+function setRows(id, html, emptyText){
+  document.getElementById(id).innerHTML = html || '<div class="empty">（' + (emptyText || '今日はありません') + '）</div>';
 }
 const WD = ['日','月','火','水','木','金','土'];
 
@@ -289,7 +289,7 @@ function render(){
     '<span class="recruit-parts">' + g.parts.map(p =>
       '<span class="recruit-part"><span class="tag">' + esc(p.type) + '</span>' +
       '<span>' + p.items.map(itemText).join(' ／ ') + '</span></span>'
-    ).join('') + '</span></div>').join(''));
+    ).join('') + '</span></div>').join(''), 'ありません');
 
   tickClock();
 }
