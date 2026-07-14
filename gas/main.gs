@@ -18,7 +18,7 @@ function doGet() {
     data = {
       config: { slideSeconds: 20, refreshMinutes: 5 },
       countdown: null, fl: [], dl: [], schedule: [],
-      reminders: [], notices: { overall: [], teams: [] }, recruit: [],
+      reminders: [], notices: { overall: [], teams: [] }, recruit: { fl: [], dl: [], staff: [] },
       ticker: [{ tag: 'エラー', text: 'データ取得に失敗しました: ' + err }],
     };
   }
@@ -190,11 +190,12 @@ function getNotices_(ss, today) {
   };
 }
 
-// 区分ごとのチップ色クラス（CSS側の .chip.fl / .chip.dl / .chip.sun / .chip.staff / .chip.other に対応）
-const RECRUIT_CHIP_CLASS = { 'FL': 'fl', 'DL': 'dl', '日曜日': 'sun', '事務': 'staff' };
+// 区分ごとのチップ色クラス（CSS側の .chip.sun / .chip.staff / .chip.other に対応。FL/DLは専用の表で表示するためチップ化しない）
+const RECRUIT_CHIP_CLASS = { '日曜日': 'sun', '事務': 'staff' };
 
 // 「FL・DL募集」シート: 日付・区分は空欄なら直前の行の値を引き継ぐ（原稿の縦並びをそのまま転記しやすくするため）
 // 表示件数の上限は設けない。過去日を除いて書いてあるものは全部載せる
+// 画面は上2/3がFL/DLの表、下1/3が日曜日・事務などその他の募集という構成
 function getRecruit_(ss, today) {
   let lastDate = null, lastType = '';
   const parsed = [];
@@ -208,16 +209,20 @@ function getRecruit_(ss, today) {
     parsed.push({ date: d, type: type, content: content, count: (count !== '' && count != null) ? count : null });
   });
 
+  const future = parsed.filter(p => p.date >= today).sort((a, b) => a.date - b.date);
+  const toRow = p => ({ label: dateLabel_(p.date), content: p.content, count: p.count });
+
+  const fl = future.filter(p => p.type === 'FL').map(toRow);
+  const dl = future.filter(p => p.type === 'DL').map(toRow);
+
   const byDate = {};
-  parsed.forEach(p => {
-    if (p.date < today) return;
+  future.filter(p => p.type !== 'FL' && p.type !== 'DL').forEach(p => {
     const key = p.date.getTime();
     if (!byDate[key]) byDate[key] = { date: p.date, types: {} };
     (byDate[key].types[p.type] = byDate[key].types[p.type] || [])
       .push({ content: p.content, count: p.count });
   });
-
-  return Object.keys(byDate).map(Number).sort((a, b) => a - b)
+  const staff = Object.keys(byDate).map(Number).sort((a, b) => a - b)
     .map(key => {
       const g = byDate[key];
       return {
@@ -229,6 +234,8 @@ function getRecruit_(ss, today) {
         })),
       };
     });
+
+  return { fl: fl, dl: dl, staff: staff };
 }
 
 function getPeople_(ss, today, windowDays) {
