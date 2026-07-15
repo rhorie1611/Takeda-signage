@@ -139,16 +139,22 @@
   .ticker-content{ display:flex; align-items:center; height:100%; }
   .ticker .tag{ flex:none; background:rgba(255,255,255,.18); font-weight:800; font-size:18px; padding:0 20px; height:100%; display:flex; align-items:center; }
 
-  /* 誕生日ポップアップ: 本文を押し下げず、ヘッダーの下に重ねて出すオーバーレイ方式。
-     隠れている間はヘッダーの高さ(76px)より確実に上（top:-80px）に退避させておくことで、
-     ヘッダーと重なって隠れてしまう事故を避ける。 */
-  .birthday-toast{ position:absolute; top:-80px; left:0; right:0; height:60px; z-index:60;
-    background:var(--card); display:flex; align-items:center; justify-content:center; gap:14px;
-    transition:top .5s ease; pointer-events:none; }
-  .birthday-toast.show{ top:76px; border-bottom:2px solid var(--info); box-shadow:0 8px 18px rgba(20,30,50,.16); }
-  .birthday-toast .icon{ font-size:28px; line-height:1; flex:none; }
-  .birthday-toast .msg{ font-family:"Zen Maru Gothic","Hiragino Kaku Gothic ProN",sans-serif; font-size:21px; font-weight:900; color:var(--text); white-space:nowrap; }
-  .birthday-toast .msg .bname{ color:var(--info); }
+  /* 誕生日ポップアップ: iPhoneのプッシュ通知風。本文は押し下げず、画面上部中央に重ねて出す。
+     隠れている間はtop:-160pxで確実に画面外（ヘッダーより上）に退避させる。 */
+  .birthday-toast{ position:absolute; top:-160px; left:50%; transform:translateX(-50%); width:640px; max-width:88%; z-index:60;
+    opacity:0; transition:top .55s cubic-bezier(.32,1.5,.62,1), opacity .3s ease; pointer-events:none; }
+  .birthday-toast.show{ top:22px; opacity:1; }
+  .birthday-toast .card{ display:flex; align-items:flex-start; gap:14px;
+    background:rgba(255,255,255,.88); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+    border:1px solid rgba(255,255,255,.6); border-radius:22px; padding:16px 20px;
+    box-shadow:0 14px 34px rgba(20,30,50,.28), 0 2px 8px rgba(20,30,50,.1); }
+  .birthday-toast .icon{ flex:none; width:52px; height:52px; border-radius:14px;
+    background:linear-gradient(135deg, var(--info), #6ea6dd); display:flex; align-items:center; justify-content:center; font-size:26px; }
+  .birthday-toast .body{ min-width:0; flex:1; }
+  .birthday-toast .meta{ display:flex; align-items:center; gap:6px; font-size:14px; color:var(--muted); font-weight:600; margin-bottom:3px; }
+  .birthday-toast .title{ font-family:"Zen Maru Gothic","Hiragino Kaku Gothic ProN",sans-serif; font-weight:900; font-size:20px; color:var(--text); }
+  .birthday-toast .msg{ font-size:19px; color:var(--text); margin-top:2px; line-height:1.4; }
+  .birthday-toast .msg .bname{ color:var(--info); font-weight:800; }
   @media (prefers-reduced-motion: reduce){ .birthday-toast{ transition:none; } }
   .ticker .msg{ font-size:20px; padding:0 22px; white-space:nowrap; }
 
@@ -171,8 +177,14 @@
   </div>
 
   <div class="birthday-toast" id="birthday-toast">
-    <div class="icon">🎉</div>
-    <div class="msg" id="birthday-msg"></div>
+    <div class="card">
+      <div class="icon">🎉</div>
+      <div class="body">
+        <div class="meta"><span>サイネージ</span><span>・</span><span>たった今</span></div>
+        <div class="title">お誕生日</div>
+        <div class="msg" id="birthday-msg"></div>
+      </div>
+    </div>
   </div>
 
   <div class="main">
