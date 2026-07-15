@@ -32,7 +32,8 @@ function setupAll() {
   const first = ss.getSheetByName('シート1') || ss.getSheetByName('Sheet1');
   if (first && ss.getSheets().length > 1) ss.deleteSheet(first);
 
-  SpreadsheetApp.getUi().alert('セットアップ完了！各シートのサンプル行は自由に消してOKです。');
+  // スクリプトエディタから直接実行するとgetUi()が使えない場合があるため、実行ログに出力する
+  Logger.log('セットアップ完了！各シートのサンプル行は自由に消してOKです。');
 }
 
 /* ================= 各シート ================= */
