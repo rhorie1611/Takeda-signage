@@ -19,6 +19,7 @@ function doGet() {
       config: { slideSeconds: 20, refreshMinutes: 5 },
       countdown: null, fl: [], dl: [], schedule: [],
       reminders: [], notices: { overall: [], teams: [] }, recruit: { fl: [], dl: [], staff: [] },
+      birthdays: [],
       ticker: [{ tag: 'エラー', text: 'データ取得に失敗しました: ' + err }],
     };
   }
@@ -47,7 +48,8 @@ function getData() {
     reminders: getReminders_(ss, today),
     notices: getNotices_(ss, today),
     recruit: getRecruit_(ss, today),
-    ticker: getTicker_(ss, today),
+    birthdays: getBirthdays_(ss, today, Number(cfg['誕生日表示日数']) || 3),
+    ticker: getTicker_(ss, today, getNewcomers_(ss, today)),
   };
 }
 
@@ -256,7 +258,8 @@ function getRecruit_(ss, today) {
   return { fl: fl, dl: dl, staff: staff };
 }
 
-function getPeople_(ss, today, windowDays) {
+// 誕生日はテロップに混ぜず、画面右上に一定間隔で出るポップアップ専用にする（他の情報に埋もれて見逃されるのを防ぐため）
+function getBirthdays_(ss, today, windowDays) {
   const items = [];
   readRows_(ss, '誕生日').forEach(r => {
     const name = String(r[0] || ''), m = Number(r[1]), d = Number(r[2]);
@@ -268,18 +271,23 @@ function getPeople_(ss, today, windowDays) {
       if (Math.abs(diff) <= windowDays) {
         // 今日が誕生日でない場合に「今日が誕生日」と誤解されないよう、日付と時制をはっきり書く
         const dateStr = m + '/' + d;
-        const text = diff === 0 ? name + ' 本日お誕生日です！🎉'
-          : diff > 0 ? name + ' ' + dateStr + 'にお誕生日を迎えます🎉'
-          : name + ' ' + dateStr + 'にお誕生日でした🎉';
-        items.push({ tag: dateStr, text: text });
+        const text = diff === 0 ? name + ' 本日お誕生日です！'
+          : diff > 0 ? name + ' ' + dateStr + 'にお誕生日を迎えます'
+          : name + ' ' + dateStr + 'にお誕生日でした';
+        items.push(text);
         break;
       }
     }
   });
+  return items;
+}
+
+function getNewcomers_(ss, today) {
+  const items = [];
   readRows_(ss, '新人紹介').forEach(r => {
     const end = asDate_(r[2]);
     if (end && end < today) return;
-    if (r[0]) items.push({ tag: '新人', text: String(r[0]) + '　' + String(r[1] || '') });
+    if (r[0]) items.push({ tag: '新人紹介', text: String(r[0]) + '　' + String(r[1] || '') });
   });
   return items;
 }
@@ -315,18 +323,17 @@ function getLost_(ss, folderId) {
   return items;
 }
 
-// テロップには「テロップ」シートに加えて、優先度が低めのコーナー（誕生日・新人紹介・忘れもの）と
+// テロップには「テロップ」シートに加えて、優先度が低めのコーナー（新人紹介・忘れもの）と
 // 「今日は何の日」もまとめて流す（専用パネルを持たせるほどではないが、消したくはない情報のため）。
-function getTicker_(ss, today) {
+// 誕生日だけは他の情報に埋もれて見逃されやすいため、別枠のポップアップで表示する（getBirthdays_）。
+function getTicker_(ss, today, newcomers) {
   const items = readRows_(ss, 'テロップ').map(r => {
     const end = asDate_(r[1]);
     if (end && end < today) return null;
     return r[0] ? { tag: 'お知らせ', text: String(r[0]) } : null;
   }).filter(Boolean);
 
-  getPeople_(ss, today, Number(readConfig_(ss)['誕生日表示日数']) || 3).forEach(p => {
-    items.push({ tag: p.tag === '新人' ? '新人紹介' : '誕生日', text: p.text });
-  });
+  newcomers.forEach(p => items.push(p));
 
   getLost_(ss).forEach(l => {
     items.push({ tag: '忘れもの', text: l.item + (l.place ? '（' + l.place + '）' : '') + ' → 受付で保管しています' });
