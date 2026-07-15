@@ -172,10 +172,15 @@ function getReminders_(ss, today) {
       text: String(r[0] || ''),
       target: String(r[2] || ''),
       due: due ? (due.getTime() === today.getTime() ? '本日中' : fmt_(due, 'M/d') + 'まで') : '',
+      dueSort: due ? due.getTime() : Infinity, // 締切なしは最後に回す
     };
-  }).filter(x => x && x.text);
+  })
+    .filter(x => x && x.text)
+    .sort((a, b) => a.dueSort - b.dueSort);
 }
 
+// 各班は常に全班分の枠を表示する（setup.gsのNOTICE_TEAMSが基準）。
+// 該当する連絡がない班は text:null を返し、画面側で「ー」とグレー表示する。
 function getNotices_(ss, today) {
   const items = readRows_(ss, '校舎からの連絡').map(r => {
     const end = asDate_(r[2]);
@@ -184,9 +189,15 @@ function getNotices_(ss, today) {
     return { scope: scope, text: String(r[1] || '') };
   }).filter(x => x && x.text);
 
+  const byTeam = {};
+  items.filter(x => x.scope && x.scope !== '全体').forEach(x => {
+    (byTeam[x.scope] = byTeam[x.scope] || []).push(x.text);
+  });
+  const teamList = (typeof NOTICE_TEAMS !== 'undefined' && NOTICE_TEAMS.length) ? NOTICE_TEAMS : Object.keys(byTeam);
+
   return {
     overall: items.filter(x => !x.scope || x.scope === '全体').map(x => x.text),
-    teams: items.filter(x => x.scope && x.scope !== '全体').map(x => ({ team: x.scope, text: x.text })),
+    teams: teamList.map(team => ({ team: team, text: byTeam[team] ? byTeam[team].join('\n') : null })),
   };
 }
 
@@ -255,7 +266,12 @@ function getPeople_(ss, today, windowDays) {
       const bd = new Date(y, m - 1, d);
       const diff = Math.round((bd - today) / 86400000);
       if (Math.abs(diff) <= windowDays) {
-        items.push({ tag: m + '/' + d, text: name + ' お誕生日！🎉' });
+        // 今日が誕生日でない場合に「今日が誕生日」と誤解されないよう、日付と時制をはっきり書く
+        const dateStr = m + '/' + d;
+        const text = diff === 0 ? name + ' 本日お誕生日です！🎉'
+          : diff > 0 ? name + ' ' + dateStr + 'にお誕生日を迎えます🎉'
+          : name + ' ' + dateStr + 'にお誕生日でした🎉';
+        items.push({ tag: dateStr, text: text });
         break;
       }
     }

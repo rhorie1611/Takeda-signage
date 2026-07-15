@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <title>サイネージ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;800&display=swap" rel="stylesheet">
 <style>
   html, body{ margin:0; padding:0; width:100%; height:100%; background:#000; overflow:hidden;
     font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP","Yu Gothic UI",Meiryo,sans-serif; }
@@ -26,10 +29,12 @@
     border:1px solid var(--line); border-radius:6px; padding:2px 10px; flex:none; }
   .panel{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px 20px; overflow:hidden;
     box-shadow:0 1px 4px rgba(24,40,64,.06); }
-  .sec-title{ font-size:26px; font-weight:800; letter-spacing:.03em; margin:0 0 10px; display:flex; align-items:center; gap:10px; }
-  .sec-title::before{ content:""; width:9px; height:26px; border-radius:4px; background:var(--info); flex:none; }
-  .sec-title.warn::before{ background:var(--alert); }
-  .sec-title .range{ font-size:17px; color:var(--muted); font-weight:600; margin-left:auto; }
+  .sec-title{ font-family:"Shippori Mincho","Hiragino Mincho ProN",serif; font-size:26px; font-weight:800;
+    letter-spacing:.08em; margin:0 0 14px; padding:9px 16px; display:flex; align-items:baseline; gap:10px;
+    color:var(--text); background:var(--soft); border-radius:8px; border-left:5px solid var(--info); }
+  .sec-title.warn{ border-left-color:var(--alert); }
+  .sec-title .range{ font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP",sans-serif;
+    font-size:14px; color:var(--muted); font-weight:600; letter-spacing:0; margin-left:auto; }
   .row{ display:flex; align-items:baseline; gap:12px; font-size:19px; line-height:1.4; }
   .row + .row{ margin-top:9px; }
   .datechip{ flex:none; min-width:98px; text-align:center; background:var(--soft); border:1px solid var(--line);
@@ -86,6 +91,7 @@
   .notice-panel .team-row{ display:block; }
   .notice-panel .team-row + .team-row{ margin-top:.77em; padding-top:.62em; border-top:1px solid var(--line); }
   .team-row .team-name{ display:block; font-weight:800; color:var(--text); font-size:.77em; margin-bottom:.15em; }
+  .team-row .team-empty{ color:var(--muted); }
 
   .head{ flex:none; height:76px; display:flex; align-items:center; justify-content:space-between;
     padding:0 30px; background:#ffffff; border-bottom:2px solid var(--line); }
@@ -282,7 +288,9 @@ function render(){
   setRows('notice-overall', d.notices.overall.map(text =>
     '<div class="row"><span>' + escNl(text) + '</span></div>').join(''));
   setRows('notice-teams', d.notices.teams.map(x =>
-    '<div class="row team-row"><span class="team-name">' + esc(x.team) + '</span><span>' + escNl(x.text) + '</span></div>').join(''));
+    '<div class="row team-row"><span class="team-name">' + esc(x.team) + '</span>' +
+    (x.text ? '<span>' + escNl(x.text) + '</span>' : '<span class="team-empty">ー</span>') +
+    '</div>').join(''));
 
   // FL・DL募集: 上段はFL/DLをそれぞれ軽い表で、下段は日曜日・事務などその他の募集
   const itemText = it => esc(it.content);
