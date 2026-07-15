@@ -139,15 +139,14 @@
   .ticker-content{ display:flex; align-items:center; height:100%; }
   .ticker .tag{ flex:none; background:rgba(255,255,255,.18); font-weight:800; font-size:18px; padding:0 20px; height:100%; display:flex; align-items:center; }
 
-  /* 誕生日ポップアップ: ヘッダーのすぐ下に、横幅いっぱいの薄い帯がスッと降りてくる形式。
-     四角いカードだと特定パネルの内容に重なってしまうため、高さを抑えて見出し部分だけに影響を留める。 */
-  .birthday-toast{ position:absolute; top:76px; left:0; right:0; height:60px; z-index:60;
-    background:var(--card); border-bottom:2px solid var(--info); box-shadow:0 8px 18px rgba(20,30,50,.16);
+  /* 誕生日ポップアップ: ヘッダーの直下に実領域を用意し、普段は高さ0で収納。表示時だけ高さが伸びて
+     中身がその分押し下げられる（position:absoluteでの重なり事故を避けるため、実際のflowで場所を取る）。 */
+  .birthday-toast{ flex:none; height:0; overflow:hidden; background:var(--card);
     display:flex; align-items:center; justify-content:center; gap:14px;
-    transform:translateY(-100%); transition:transform .5s ease; pointer-events:none; }
-  .birthday-toast.show{ transform:translateY(0); }
+    transition:height .5s ease; }
+  .birthday-toast.show{ height:60px; border-bottom:2px solid var(--info); box-shadow:0 8px 18px rgba(20,30,50,.16); }
   .birthday-toast .icon{ font-size:28px; line-height:1; flex:none; }
-  .birthday-toast .msg{ font-family:"Zen Maru Gothic","Hiragino Kaku Gothic ProN",sans-serif; font-size:21px; font-weight:900; color:var(--text); }
+  .birthday-toast .msg{ font-family:"Zen Maru Gothic","Hiragino Kaku Gothic ProN",sans-serif; font-size:21px; font-weight:900; color:var(--text); white-space:nowrap; }
   .birthday-toast .msg .bname{ color:var(--info); }
   @media (prefers-reduced-motion: reduce){ .birthday-toast{ transition:none; } }
   .ticker .msg{ font-size:20px; padding:0 22px; white-space:nowrap; }
@@ -168,6 +167,11 @@
       <span class="chip fl">FL</span><span id="now-fl">—</span>
     </div>
     <div class="count num" id="countdown"></div>
+  </div>
+
+  <div class="birthday-toast" id="birthday-toast">
+    <div class="icon">🎉</div>
+    <div class="msg" id="birthday-msg"></div>
   </div>
 
   <div class="main">
@@ -241,11 +245,6 @@
       <div class="tag" id="ticker-tag"></div>
       <div class="msg" id="ticker-msg"></div>
     </div>
-  </div>
-
-  <div class="birthday-toast" id="birthday-toast">
-    <div class="icon">🎉</div>
-    <div class="msg" id="birthday-msg"></div>
   </div>
 </div>
 
