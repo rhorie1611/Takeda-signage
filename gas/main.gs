@@ -16,7 +16,7 @@ function doGet() {
   } catch (err) {
     // シート未設定などでも画面自体は表示する（次の自動更新で復帰）
     data = {
-      config: { slideSeconds: 20, refreshMinutes: 5 },
+      config: { slideSeconds: 20, refreshMinutes: 5, birthdayIntervalSeconds: 90, tickerSeconds: 8 },
       countdown: null, fl: [], dl: [], schedule: [],
       reminders: [], notices: { overall: [], teams: [] }, recruit: { fl: [], dl: [], staff: [] },
       birthdays: [],
@@ -40,6 +40,8 @@ function getData() {
     config: {
       slideSeconds: Number(cfg['スライド切替秒数']) || 20,
       refreshMinutes: Number(cfg['データ更新間隔(分)']) || 5,
+      birthdayIntervalSeconds: Number(cfg['誕生日ポップアップ間隔(秒)']) || 90,
+      tickerSeconds: Number(cfg['テロップ表示秒数']) || 8,
     },
     countdown: getCountdown_(ss, today),
     fl: getLeaders_(cfg['FLカレンダーID'], true),
@@ -269,12 +271,10 @@ function getBirthdays_(ss, today, windowDays) {
       const bd = new Date(y, m - 1, d);
       const diff = Math.round((bd - today) / 86400000);
       if (Math.abs(diff) <= windowDays) {
-        // 今日が誕生日でない場合に「今日が誕生日」と誤解されないよう、日付と時制をはっきり書く
-        const dateStr = m + '/' + d;
-        const text = diff === 0 ? name + ' 本日お誕生日です！'
-          : diff > 0 ? name + ' ' + dateStr + 'にお誕生日を迎えます'
-          : name + ' ' + dateStr + 'にお誕生日でした';
-        items.push(text);
+        // 今日が誕生日でない場合に「今日が誕生日」と誤解されないよう日付を明示する。
+        // 名前と本文を分けて返し、画面側で名前だけ太字にして視認性を上げる。
+        const message = diff === 0 ? '本日お誕生日です！' : (m + '/' + d + 'にお誕生日です！');
+        items.push({ name: name, message: message });
         break;
       }
     }

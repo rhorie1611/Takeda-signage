@@ -136,6 +136,7 @@
   .slide-dots i.on{ background:var(--info); }
 
   .ticker{ flex:none; height:50px; background:#1d3350; color:#fff; display:flex; align-items:center; overflow:hidden; }
+  .ticker-content{ display:flex; align-items:center; height:100%; }
   .ticker .tag{ flex:none; background:rgba(255,255,255,.18); font-weight:800; font-size:18px; padding:0 20px; height:100%; display:flex; align-items:center; }
 
   /* 誕生日ポップアップ: スマホ通知のように画面右上から一定間隔で出る（常設の枠を使わずに済ませるため） */
@@ -147,6 +148,7 @@
   .birthday-toast .icon{ font-size:36px; line-height:1; flex:none; }
   .birthday-toast .label{ display:block; font-size:13px; color:var(--muted); font-weight:700; letter-spacing:.1em; margin-bottom:3px; }
   .birthday-toast .msg{ font-family:"Zen Maru Gothic","Hiragino Kaku Gothic ProN",sans-serif; font-size:22px; font-weight:900; color:var(--text); }
+  .birthday-toast .msg .bname{ color:var(--info); }
   @media (prefers-reduced-motion: reduce){ .birthday-toast{ transition:none; } }
   .ticker .msg{ font-size:20px; padding:0 22px; white-space:nowrap; }
 
@@ -235,8 +237,10 @@
   </div>
 
   <div class="ticker">
-    <div class="tag" id="ticker-tag"></div>
-    <div class="msg" id="ticker-msg"></div>
+    <div class="ticker-content" id="ticker-content">
+      <div class="tag" id="ticker-tag"></div>
+      <div class="msg" id="ticker-msg"></div>
+    </div>
   </div>
 
   <div class="birthday-toast" id="birthday-toast">
@@ -384,35 +388,78 @@ function rotateSlides(){
 }
 setInterval(rotateSlides, (DATA.config.slideSeconds || 20) * 1000);
 
-/* ---------- テロップ ---------- */
+/* ---------- テロップ（右→左にフェードイン→表示秒数(設定シートで変更可)→次がフェードイン） ---------- */
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const TICKER_FADE_MS = reducedMotion ? 0 : 500;
 let tickerIdx = 0;
-function rotateTicker(){
+let tickerTimer = null;
+
+function tickerSetPosition(el, x, opacity, withTransition){
+  el.style.transition = withTransition ? ('transform ' + TICKER_FADE_MS + 'ms ease, opacity ' + TICKER_FADE_MS + 'ms ease') : 'none';
+  el.style.transform = 'translateX(' + x + 'px)';
+  el.style.opacity = String(opacity);
+}
+
+function tickerCycle(){
+  const el = document.getElementById('ticker-content');
   const items = DATA.ticker;
-  if(!items.length){
+  if(!items || !items.length){
     document.getElementById('ticker-tag').textContent = '';
     document.getElementById('ticker-msg').textContent = '';
+    tickerTimer = setTimeout(tickerCycle, 4000);
     return;
   }
-  tickerIdx = tickerIdx % items.length;
-  document.getElementById('ticker-tag').textContent = items[tickerIdx].tag;
-  document.getElementById('ticker-msg').textContent = items[tickerIdx].text;
-  tickerIdx++;
-}
-setInterval(rotateTicker, 12000);
+  const holdMs = (DATA.config.tickerSeconds || 8) * 1000;
 
-/* ---------- 誕生日ポップアップ（スマホ通知風。90秒ごとに右上から出て9秒表示） ---------- */
+  // 1. 今の文章を左へフェードアウト
+  tickerSetPosition(el, -40, 0, true);
+
+  tickerTimer = setTimeout(() => {
+    // 2. 非表示のうちに文章を差し替え、右側へ瞬間移動（アニメーションなし）
+    tickerIdx = tickerIdx % items.length;
+    document.getElementById('ticker-tag').textContent = items[tickerIdx].tag;
+    document.getElementById('ticker-msg').textContent = items[tickerIdx].text;
+    tickerIdx++;
+    tickerSetPosition(el, 40, 0, false);
+    void el.offsetWidth; // 強制リフロー
+
+    // 3. 右から中央へフェードイン
+    tickerSetPosition(el, 0, 1, true);
+
+    // 4. 表示秒数キープしたら次のサイクルへ
+    tickerTimer = setTimeout(tickerCycle, holdMs);
+  }, TICKER_FADE_MS);
+}
+
+function initTicker(){
+  const el = document.getElementById('ticker-content');
+  const items = DATA.ticker;
+  tickerSetPosition(el, 0, 1, false);
+  if(!items || !items.length){ tickerTimer = setTimeout(tickerCycle, 4000); return; }
+  document.getElementById('ticker-tag').textContent = items[0].tag;
+  document.getElementById('ticker-msg').textContent = items[0].text;
+  tickerIdx = 1;
+  tickerTimer = setTimeout(tickerCycle, (DATA.config.tickerSeconds || 8) * 1000);
+}
+
+/* ---------- 誕生日ポップアップ（スマホ通知風。表示間隔は設定シートで変更可） ---------- */
 let birthdayIdx = 0;
 function showBirthdayToast(){
   const list = DATA.birthdays || [];
   if(!list.length) return;
-  document.getElementById('birthday-msg').textContent = list[birthdayIdx % list.length];
+  const b = list[birthdayIdx % list.length];
   birthdayIdx++;
+  document.getElementById('birthday-msg').innerHTML =
+    '<b class="bname">' + esc(b.name) + '</b>　' + esc(b.message);
   const el = document.getElementById('birthday-toast');
   el.classList.add('show');
   setTimeout(() => el.classList.remove('show'), 9000);
 }
-setTimeout(showBirthdayToast, 8000);
-setInterval(showBirthdayToast, 90000);
+function birthdayCycle(){
+  showBirthdayToast();
+  setTimeout(birthdayCycle, (DATA.config.birthdayIntervalSeconds || 90) * 1000);
+}
+setTimeout(birthdayCycle, 8000);
 
 /* ---------- データ再取得・日次リロード ---------- */
 function refresh(){
@@ -430,7 +477,7 @@ setInterval(() => {
 }, 45000);
 
 render();
-rotateTicker();
+initTicker();
 </script>
 </body>
 </html>
