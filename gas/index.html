@@ -108,14 +108,15 @@
 
   .main{ flex:1; display:grid; grid-template-columns:1fr 2fr; gap:16px; padding:16px 30px; min-height:0; }
 
-  .fd-panel{ display:flex; flex-direction:column; min-height:0; gap:14px; }
-  .fd-wrap{ flex:none; display:grid; grid-template-columns:1fr 1.3fr; gap:14px; }
-  .fd-reminders{ flex:1; min-height:0; overflow-y:auto; padding-top:14px; border-top:1px solid var(--line); }
-  .fd-col h3{ margin:0 0 8px; font-size:16px; font-weight:800; display:flex; align-items:center; gap:6px; color:var(--muted); letter-spacing:.08em; }
-  .timeline{ display:flex; flex-direction:column; gap:6px; }
-  .tl-item{ display:flex; flex-direction:column; gap:1px; padding:6px 11px; border-radius:8px; border:1px solid var(--line); background:var(--soft); }
-  .tl-item .time{ color:var(--muted); font-weight:700; font-size:14px; }
-  .tl-item .who{ font-size:18px; font-weight:700; line-height:1.3; }
+  .fd-panel{ display:flex; flex-direction:column; min-height:0; gap:6px; }
+  .fd-wrap{ flex:none; display:grid; grid-template-columns:1fr 1.3fr; gap:12px; }
+  .fd-reminders{ flex:1; min-height:0; overflow-y:auto; padding-top:16px; margin-top:8px; border-top:1px solid var(--line); }
+  .fd-col h3{ margin:0 0 4px; font-size:14px; font-weight:800; display:flex; align-items:center; gap:6px; color:var(--muted); letter-spacing:.08em; }
+  .fd-col h3 .chip{ font-size:14px; padding:1px 8px; }
+  .timeline{ display:flex; flex-direction:column; gap:5px; }
+  .tl-item{ display:flex; flex-direction:column; gap:1px; padding:5px 10px; border-radius:7px; border:1px solid var(--line); background:var(--soft); }
+  .tl-item .time{ color:var(--muted); font-weight:700; font-size:13px; }
+  .tl-item .who{ font-size:16px; font-weight:700; line-height:1.3; }
   .fd-col.fl .tl-item{ background:var(--fl-soft); border-color:var(--fl); }
   .fd-col.dl .tl-item{ background:var(--dl-soft); border-color:var(--dl); }
   .tl-item.done{ opacity:.38; }
@@ -217,7 +218,14 @@
       </div>
       <div class="fd-reminders">
         <h2 class="sec-title warn">提出リマインド</h2>
-        <div id="reminders"></div>
+        <div class="notice-block ov">
+          <div class="notice-block-title">講師</div>
+          <div id="reminders-teacher"></div>
+        </div>
+        <div class="notice-block tm">
+          <div class="notice-block-title">生徒</div>
+          <div id="reminders-student"></div>
+        </div>
       </div>
     </div>
 
@@ -326,10 +334,12 @@ function render(){
     '<span class="datechip num">' + esc(x.label) + '</span><span>' + escNl(x.text) +
     (x.emph ? ' <b class="deadline">締切</b>' : '') + '</span></div>').join(''));
 
-  // リマインド
-  setRows('reminders', d.reminders.map(x =>
-    '<div class="row"><span>' + (x.target ? '<span class="datechip">' + esc(x.target) + '</span> ' : '') +
-    escNl(x.text) + '</span><span class="deadline num" style="margin-left:auto;">' + esc(x.due) + '</span></div>').join(''));
+  // リマインド（講師を先に、生徒は見える範囲でよい構成なので後ろに）
+  const reminderRow = x =>
+    '<div class="row"><span>' + escNl(x.text) +
+    '</span><span class="deadline num" style="margin-left:auto;">' + esc(x.due) + '</span></div>';
+  setRows('reminders-teacher', d.reminders.teacher.map(reminderRow).join(''));
+  setRows('reminders-student', d.reminders.student.map(reminderRow).join(''));
 
   // 校舎からの連絡（全体・各班）
   setRows('notice-overall', d.notices.overall.map(text =>
@@ -477,7 +487,7 @@ function showBirthdayToast(){
     '<b class="bname">' + esc(b.name) + '</b>　' + esc(b.message);
   const el = document.getElementById('birthday-toast');
   el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 6000);
+  setTimeout(() => el.classList.remove('show'), 8000);
 }
 function birthdayCycle(){
   showBirthdayToast();

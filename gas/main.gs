@@ -18,7 +18,7 @@ function doGet() {
     data = {
       config: { slideSeconds: 20, refreshMinutes: 5, birthdayIntervalSeconds: 90, tickerSeconds: 8 },
       countdown: null, fl: [], dl: [], schedule: [],
-      reminders: [], notices: { overall: [], teams: [] }, recruit: { fl: [], dl: [], staff: [] },
+      reminders: { teacher: [], student: [] }, notices: { overall: [], teams: [] }, recruit: { fl: [], dl: [], staff: [] },
       birthdays: [],
       ticker: [{ tag: 'エラー', text: 'データ取得に失敗しました: ' + err }],
     };
@@ -50,7 +50,7 @@ function getData() {
     reminders: getReminders_(ss, today),
     notices: getNotices_(ss, today),
     recruit: getRecruit_(ss, today),
-    birthdays: getBirthdays_(ss, today, Number(cfg['誕生日表示日数']) || 3),
+    birthdays: getBirthdays_(ss, today, Number(cfg['誕生日表示日数']) || 2),
     ticker: getTicker_(ss, today, getNewcomers_(ss, today)),
   };
 }
@@ -167,8 +167,10 @@ function getSchedule_(ss, today) {
 
 /* ================= 各コーナー ================= */
 
+// 提出リマインドは校舎からの連絡と同じ考え方で「講師」を先に、「生徒」を後ろに分けて表示する。
+// 講師用サイネージなので講師の見落としを防ぐのが最優先、生徒用は見える範囲でよい（枠の下の方は切れてもOK）。
 function getReminders_(ss, today) {
-  return readRows_(ss, '提出リマインド').map(r => {
+  const items = readRows_(ss, '提出リマインド').map(r => {
     const due = asDate_(r[1]);
     const end = asDate_(r[3]) || due; // 掲載終了日が空欄なら締切日まで
     if (end && end < today) return null;
@@ -181,6 +183,11 @@ function getReminders_(ss, today) {
   })
     .filter(x => x && x.text)
     .sort((a, b) => a.dueSort - b.dueSort);
+
+  return {
+    teacher: items.filter(x => x.target !== '生徒'),
+    student: items.filter(x => x.target === '生徒'),
+  };
 }
 
 // 各班は常に全班分の枠を表示する（setup.gsのNOTICE_TEAMSが基準）。
@@ -270,7 +277,8 @@ function getBirthdays_(ss, today, windowDays) {
     for (const y of [today.getFullYear() - 1, today.getFullYear(), today.getFullYear() + 1]) {
       const bd = new Date(y, m - 1, d);
       const diff = Math.round((bd - today) / 86400000);
-      if (Math.abs(diff) <= windowDays) {
+      // 過去の誕生日は対象外。今日から windowDays 日後まで（未来方向のみ）を表示する
+      if (diff >= 0 && diff <= windowDays) {
         // 今日が誕生日でない場合に「今日が誕生日」と誤解されないよう日付を明示する。
         // 名前と本文を分けて返し、画面側で名前だけ太字にして視認性を上げる。
         const message = diff === 0 ? '本日お誕生日です！' : (m + '/' + d + 'にお誕生日です！');
